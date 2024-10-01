@@ -7,7 +7,7 @@ To get started with this NodeJS based blog website, follow these simple steps:
 1. **Clone the Repository**: 
    Open your terminal and run the following command to clone the project:
    ```
-   git clone https://github.com/tungmv/NT213.P12.ANTT.git
+   git clone https://github.com/evgafanboi/NT213.P12.ANTT.git
    ```
 
 2. **Navigate to the Project Directory**: 
@@ -34,6 +34,6 @@ To get started with this NodeJS based blog website, follow these simple steps:
 6. **Modify the Code**: 
    Feel free to explore and modify the code to suit your needs. Check the `src` folder for the main application files.
 
-For any issues, please refer to the documentation or open an issue in the repository.
+For any issues, please refer to the documentation or open an issue in the repository. 
 
 Happy coding!
