@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Register Page</title>
+    <link rel="stylesheet" href="css/register.css">
+</head>
+<body>
+    <form id="registerForm">
+        <label name="label">
+            <p class="info-hover" data-tooltip="thông tin này vô ích"></p>
+            Tên người dùng <input type="text" name="username" required></label><br>
+
+        <label name="label">
+            <p class="info-hover" data-tooltip="bạn vừa tiếp tục tìm xem thông tin vô ích"></p>
+            Mật khẩu
+            <input type="password" name="password" required>
+        </label><br>
+
+        <label name="label">
+            <p class="info-hover" data-tooltip="deja vu"></p>
+            Nhập lại mật khẩu
+            <input type="password" name="passwordClone" required>
+        </label><br>
+
+        <button name="submitButton" type="submit">Register</button>
+    </form>
+    <a href="login.html"><p class="log-prompt">Đã có tài khoản?</p></a>
+        <script src="js/register.js"></script>
+</body>
+</html>

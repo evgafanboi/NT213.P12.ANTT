@@ -18,6 +18,7 @@
   },
   "homepage": "https://github.com/evgafanboi/NT213.P12.ANTT#readme",
   "dependencies": {
+    "axios": "^1.7.7",
     "bcrypt": "^5.1.1",
     "connect-mysql": "^4.0.0",
     "dotenv": "^16.4.5",
@@ -28,6 +29,7 @@
     "multer": "^1.4.5-lts.1",
     "mysql2": "^3.11.3",
     "openai": "^4.66.1",
+    "path": "^0.12.7",
     "sanitize-html": "^2.13.0"
   },
   "devDependencies": {

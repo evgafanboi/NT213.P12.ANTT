@@ -12,6 +12,19 @@ const axios = require('axios');
 const app = express();
 const port = process.env.PORT || 3000;
 
+// Serve static files from the 'public' directory: js, css, images, etc.
+app.use(express.static(path.join(__dirname, 'template')));
+
+// Root route - redirect to login page
+app.get('/', (req, res) => {
+  res.redirect('/login');
+});
+
+// Login route - serve the login.html file
+app.get('/login', (req, res) => {
+  res.sendFile(path.join(__dirname, 'template', 'login.html'));
+});
+
 // MySQL connection
 const dbConfig = {
   host: 'localhost',
@@ -48,7 +61,8 @@ const storage = multer.diskStorage({
 });
 const upload = multer({ storage: storage });
 
-// Routes
+// RouteController
+/*
 app.get('/', async (req, res) => {
   try {
     const [rows] = await pool.query('SELECT * FROM blogs ORDER BY created_at DESC');
@@ -58,7 +72,7 @@ app.get('/', async (req, res) => {
     res.status(500).json({ error: 'Internal server error' });
   }
 });
-
+*/                                                                  //##DEFAULT ROUTE##
 app.post('/blog', async (req, res) => {
   const { title, content } = req.body;
   try {
