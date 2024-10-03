@@ -7,7 +7,7 @@ form.addEventListener('submit', async (e) => {
         password: formData.get('password')
     };
 
-    const response = await fetch('/login', {            //send the login request with the cred serialized into a json
+    const response = await fetch('/auth/login', {            //send the login request with the cred serialized into a json
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(data)

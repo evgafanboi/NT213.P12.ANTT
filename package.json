@@ -1,0 +1,13 @@
+{
+  "scripts": {
+    "start": "node src/app.js"
+  },
+  "dependencies": {
+    "bcrypt": "^5.1.1",
+    "connect-sqlite3": "^0.9.15",
+    "express": "^4.21.0",
+    "express-session": "^1.18.0",
+    "express-validator": "^7.2.0",
+    "sqlite3": "^5.1.7"
+  }
+}
