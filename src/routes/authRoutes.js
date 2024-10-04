@@ -4,8 +4,7 @@ const bcrypt = require('bcrypt');
 const { body, validationResult } = require('express-validator');
 const db = require('../db/database');
 
-// We'll add our routes here
-
+// Register route
 router.post('/register', [
   body('username').isLength({ min: 3 }).trim().escape(),
   body('password').isLength({ min: 6 }),
@@ -50,13 +49,13 @@ router.post('/login', [
   const { username, password } = req.body;
 
   try {
-    // Find user
+    // Find user by username
     const user = await db.get('SELECT * FROM users WHERE username = ?', [username]);
     if (!user) {
       return res.status(400).json({ message: 'Invalid credentials' });
     }
 
-    // Check password
+    // Compare password hashes
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
       return res.status(400).json({ message: 'Invalid credentials' });
