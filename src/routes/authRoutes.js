@@ -141,4 +141,13 @@ router.put('/profile', [
   }
 });
 
+// Add this function at the end of the file
+function isAuthenticated(req, res, next) {
+  if (req.session.userId) {
+    next();
+  } else {
+    res.status(401).json({ message: 'Unauthorized' });
+  }
+}
+
 module.exports = router;

@@ -19,19 +19,13 @@ To get started with this NodeJS based blog website, follow these simple steps:
    Open your web browser and go to `http://localhost:3000` to view the blog.
 
 4. **Modify the Code**: 
-   Feel free to explore and modify the code to suit your needs. Check the `src` folder for the main application files.
+   Feel free to explore and modify the code to suit your needs. Check the `src` folder for the main application files. Also, check the API documentation in the `docs` folder for more details on how to interact with the application's endpoints.
 
 5. **Packages used**:
-   Here are the NodeJS modules/packages used in this project, the list will be updated as we add more packages:
-   - express
-   - express-session
-   - express-validator
-   - helmet
-   - xss-clean
-   - bcrypt
-   - connect-sqlite3
+   The following Node.js modules/packages are utilized in this project. This list will be updated as more packages are added:
+   - express, express-session, express-validator, helmet, xss-clean, bcrypt, connect-sqlite3
 
-   You can download all packages by running
+   To install all packages, run the following command:
    ```sh
    npm install express express-session connect-sqlite3 bcrypt express-validator helmet xss-clean
    ```
