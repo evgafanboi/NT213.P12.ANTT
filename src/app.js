@@ -5,7 +5,6 @@ const path = require('path');
 const helmet = require('helmet');
 const xss = require('xss-clean');
 const authRoutes = require('./routes/authRoutes');
-
 const app = express();
 
 // Helmet to set various HTTP headers and XSS-Clean to prevent XSS attacks

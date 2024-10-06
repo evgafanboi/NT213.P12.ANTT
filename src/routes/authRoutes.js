@@ -90,4 +90,55 @@ router.post('/logout', (req, res) => {
   });
 });
 
+// Get user profile
+router.get('/profile', (req, res) => {
+  if (!req.session.userId) {
+    return res.status(401).json({ message: 'Unauthorized' });
+  }
+  
+  db.get('SELECT id, username FROM users WHERE id = ?', [req.session.userId])
+    .then(user => {
+      if (!user) {
+        return res.status(404).json({ message: 'User not found' });
+      }
+      res.json(user);
+    })
+    .catch(error => {
+      console.error(error);
+      res.status(500).json({ message: 'Server error' });
+    });
+});
+
+// Update user profile
+router.put('/profile', [
+  body('username').optional().isLength({ min: 3 }).trim().escape(),
+  body('password').optional().isLength({ min: 6 }),
+], async (req, res) => {
+  if (!req.session.userId) {
+    return res.status(401).json({ message: 'Unauthorized' });
+  }
+
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    return res.status(400).json({ errors: errors.array() });
+  }
+
+  const { username, password } = req.body;
+  const updates = {};
+
+  if (username) updates.username = username;
+  if (password) updates.password = await bcrypt.hash(password, 10);
+
+  try {
+    await db.run(
+      'UPDATE users SET ' + Object.keys(updates).map(key => `${key} = ?`).join(', ') + ' WHERE id = ?',
+      [...Object.values(updates), req.session.userId]
+    );
+    res.json({ message: 'Profile updated successfully' });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
 module.exports = router;
