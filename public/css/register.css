@@ -48,6 +48,7 @@ input[type="password"]:focus {
     outline: 2px solid #ffdd00;
 }
 
+button[name="verifyButton"],
 button[name="submitButton"] {
     width: 100%;
     padding: 0.8rem;
@@ -61,6 +62,7 @@ button[name="submitButton"] {
     font-weight: bold;
     font-size: 1.1rem;
     transition: background-color 0.3s ease;
+    margin-bottom: 2.0rem
 }
 
 button[name="submitButton"]:hover,
@@ -111,4 +113,10 @@ button[name="submitButton"]:focus {
 .info-hover:hover::before {
     opacity: 1;
     visibility: visible;
+}
+
+.error-message {
+    color: cyan;
+    font-size: 0.8em;
+    margin-top: 5px;
 }

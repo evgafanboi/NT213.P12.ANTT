@@ -9,8 +9,13 @@
     <form id="registerForm">
         <label name="label">
             <p class="info-hover" data-tooltip="thông tin này vô ích"></p>
-            Tên người dùng <input type="text" name="username" required></label><br>
-
+            Email <input type="text" name="email" required>
+        </label>
+        <p id="emailError" class="error-message"></p><br><br>
+        <label name="label">
+            <p class="info-hover" data-tooltip="thông tin này vô ích"></p>
+            Tên người dùng <input type="text" name="username" required>
+        </label><br>
         <label name="label">
             <p class="info-hover" data-tooltip="bạn vừa tiếp tục tìm xem thông tin vô ích"></p>
             Mật khẩu
@@ -22,10 +27,17 @@
             Nhập lại mật khẩu
             <input type="password" name="passwordClone" required>
         </label><br>
-
-        <button name="submitButton" type="submit">Register</button>
+        <button name="submitButton" type="submit">Send Verification Code</button>
     </form>
-    <a href="login.html"><p class="log-prompt">Đã có tài khoản?</p></a>
-        <script src="js/register.js"></script>
+    <form id="verificationForm" style="display: none;">
+        <label name="label">
+            Verification Code
+            <input type="text" name="verificationCode" required>
+        </label><br>
+        <button name="verifyButton" type="submit">Verify and Register</button>
+        <p id="expirationTimer"></p>
+    </form>
+    <a href="login"><p class="log-prompt">Đã có tài khoản?</p></a>
+    <script src="js/register.js"></script>
 </body>
 </html>
