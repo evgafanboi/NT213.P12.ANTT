@@ -20,9 +20,10 @@ To get started with this NodeJS based blog website, follow these simple steps:
    EMAIL_USER=your_email@gmail.com
    EMAIL_PASS=your_email_app_password
    ```
-   Also, change the PORT in the .env file:
+   Also, change the PORTs in the .env file:
    ```
    HTTPS_PORT=<your_desired_port>
+   HTTP_PORT=<your_desired_port+1>
    ```
    Generate a random n characters string, using for example:
    ```sh
@@ -59,14 +60,13 @@ To get started with this NodeJS based blog website, follow these simple steps:
    openssl req -x509 -newkey rsa:4096 -keyout ssl/key.pem -out ssl/cert.pem -days 365 -nodes
    ```
    - Place your private key in `ssl/key.pem` and your certificate in `ssl/cert.pem`.
-   
+
    **NOTE**: Using self-signed certificates will make the browser issue a security warning. Ignore anyway. Or get a real certificate you poor monkey.
    - Update the paths in `src/app.js` if necessary.
 
 5. **HTTPS Configuration**:
-   - The application now runs on HTTPS by default.
-   - Make sure your server allows HTTPS traffic (usually port 443).
-   - Update your firewall settings if necessary.
+   - The application now runs on HTTPS by default. However, it also hosts an HTTP server that redirects to HTTPS for every request.
+   - Change the `HTTPS_PORT` and `HTTP_PORT` in the .env file to your desired ports. Oddest ports are recommended.
 
 6. **Modify the Code**: 
    Feel free to explore and modify the code to suit your needs. Check the `src` folder for the main application files. Also, check the API documentation in the `docs` folder for more details on how to interact with the application's endpoints.
