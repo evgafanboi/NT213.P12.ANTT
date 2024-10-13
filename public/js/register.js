@@ -68,7 +68,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const data = { email, username, password };
 
         try {
-            const response = await fetch('/auth/register/send-code', {
+            const response = await fetch('https://' + window.location.hostname + '/auth/register/send-code', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(data)
@@ -100,7 +100,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const data = { email: userEmail, code };
 
         try {
-            const response = await fetch('/auth/register/verify', {
+            const response = await fetch('https://' + window.location.hostname + '/auth/register/verify', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(data)

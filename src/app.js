@@ -1,4 +1,5 @@
 require('dotenv').config();
+const https = require('https');
 const express = require('express');
 const session = require('express-session');
 const SQLiteStore = require('connect-sqlite3')(session);
@@ -8,6 +9,7 @@ const xss = require('xss-clean');
 const authRoutes = require('./routes/authRoutes');
 const postRoutes = require('./routes/postRoutes');
 const commentRoutes = require('./routes/commentRoutes');
+const fs = require('fs');
 
 const app = express();
 
@@ -24,10 +26,14 @@ app.use(session({
     db: 'data/sessions.sqlite',
     dir: path.join(__dirname, '..')
   }),
-  secret: process.env.SESSION_SECRET || 'your secret key', // TODO: Change this to a random string
+  secret: process.env.SESSION_SECRET, // TODO: Change this to a random 64 character string using `openssl rand -base64 64`  
   resave: false,
   saveUninitialized: false,
-  cookie: { secure: process.env.NODE_ENV === 'production' }
+  cookie: { 
+    secure: true, // Force HTTPS
+    httpOnly: true,
+    sameSite: 'strict'
+  }
 }));
 
 // Route handlers
@@ -51,9 +57,18 @@ app.use((err, req, res, next) => {
   res.status(500).sendFile(path.join(__dirname, 'views', '500.html'));
 });
 
-// Start the server
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+// SSL/TLS configuration
+const options = {
+  key: fs.readFileSync(path.join(__dirname, '..', 'ssl', 'key.pem')),
+  cert: fs.readFileSync(path.join(__dirname, '..', 'ssl', 'cert.pem'))
+};
+
+// Create HTTPS server
+const server = https.createServer(options, app);
+
+// Update server start
+const PORT = process.env.HTTPS_PORT;
+server.listen(PORT, () => console.log(`HTTPS Server running on port ${PORT}`));
 
 // Authentication middleware
 const isAuthenticated = (req, res, next) => {
