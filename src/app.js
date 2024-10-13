@@ -10,6 +10,7 @@ const authRoutes = require('./routes/authRoutes');
 const postRoutes = require('./routes/postRoutes');
 const commentRoutes = require('./routes/commentRoutes');
 const fs = require('fs');
+const http = require('http');
 
 const app = express();
 
@@ -64,11 +65,20 @@ const options = {
 };
 
 // Create HTTPS server
-const server = https.createServer(options, app);
+const httpsServer = https.createServer(options, app);
 
-// Update server start
-const PORT = process.env.HTTPS_PORT;
-server.listen(PORT, () => console.log(`HTTPS Server running on port ${PORT}`));
+// Create HTTP server that redirects to HTTPS
+const httpServer = http.createServer((req, res) => {
+    res.writeHead(301, { "Location": "https://" + req.headers['host'] + req.url });
+    res.end();
+});
+
+// Start both servers
+const HTTPS_PORT = process.env.HTTPS_PORT || 443;
+const HTTP_PORT = process.env.HTTP_PORT || 80;
+
+httpsServer.listen(HTTPS_PORT, () => console.log(`HTTPS Server running on port ${HTTPS_PORT}`));
+httpServer.listen(HTTP_PORT, () => console.log(`HTTP Server running on port ${HTTP_PORT}`));
 
 // Authentication middleware
 const isAuthenticated = (req, res, next) => {

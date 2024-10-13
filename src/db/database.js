@@ -45,10 +45,21 @@ function createTables() {
       FOREIGN KEY (post_id) REFERENCES posts (id) ON DELETE CASCADE
     )`;
 
+  const createDevicesTable = `
+    CREATE TABLE IF NOT EXISTS devices (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      user_id INTEGER NOT NULL,
+      device_id TEXT NOT NULL,
+      last_login DATETIME DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE,
+      UNIQUE(user_id, device_id)
+    )`;
+
   db.serialize(() => {
     db.run(createUsersTable, handleError('creating users table'));
     db.run(createPostsTable, handleError('creating posts table'));
     db.run(createCommentsTable, handleError('creating comments table'));
+    db.run(createDevicesTable, handleError('creating devices table'));
   });
 }
 
@@ -58,7 +69,7 @@ function handleError(action) {
       console.error(`Error ${action}:`, err);
       process.exit(1);
     }
-    console.log(`${action.charAt(0).toUpperCase() + action.slice(1)} created or already exists.`);
+    console.log(`${action.charAt(0).toUpperCase() + action.slice(1)} sucessfully initialized or already exists.`);
   };
 }
 

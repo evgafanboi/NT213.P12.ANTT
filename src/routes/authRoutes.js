@@ -5,7 +5,7 @@ const { body, validationResult } = require('express-validator');
 const db = require('../db/database');
 const { generateVerificationCode, sendVerificationEmail } = require('../utils/emailService');
 
-// Temporary storage for verification codes (no need for a database since it has an expiration time)
+// Temporary storage for verification codes (no need for a database since it has a very short expiration time)
 const verificationCodes = new Map();
 
 // Check the code if it's expired
@@ -103,24 +103,38 @@ router.post('/login', [
   }
 
   const { username, password } = req.body;
+  const deviceId = req.headers['user-agent'] || 'unknown';
 
   try {
-    // Find user by username
     const user = await db.get('SELECT * FROM users WHERE username = ?', [username]);
     if (!user) {
       return res.status(400).json({ message: 'Invalid credentials' });
     }
 
-    // Compare password hashes
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
       return res.status(400).json({ message: 'Invalid credentials' });
     }
 
-    // Set session
+    const device = await db.get('SELECT * FROM devices WHERE user_id = ? AND device_id = ?', [user.id, deviceId]);
+    const needsVerification = !device || (Date.now() - new Date(device.last_login).getTime() > 7 * 24 * 60 * 60 * 1000);
+
+    if (needsVerification) {
+      const verificationCode = generateVerificationCode();
+      verificationCodes.set(user.email, {
+        code: verificationCode,
+        userId: user.id,
+        deviceId: deviceId,
+        timestamp: Date.now()
+      });
+      await sendVerificationEmail(user.email, verificationCode);
+      return res.status(200).json({ message: '2FA required', require2FA: true, email: user.email });
+    }
+
+    await db.run('UPDATE devices SET last_login = CURRENT_TIMESTAMP WHERE user_id = ? AND device_id = ?', [user.id, deviceId]);
     req.session.userId = user.id;
 
-    res.json({ message: 'Logged in successfully' });
+    res.json({ success: true, message: 'Logged in successfully' });
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: 'Server error' });
@@ -215,6 +229,41 @@ router.post('/check-email', async (req, res) => {
         console.error(error);
         res.status(500).json({ message: 'Server error' });
     }
+});
+
+router.post('/verify-2fa', [
+  body('email').isEmail().normalizeEmail(),
+  body('code').isLength({ min: 6, max: 6 }).isNumeric(),
+], async (req, res) => {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    return res.status(400).json({ errors: errors.array() });
+  }
+
+  const { email, code } = req.body;
+
+  try {
+    const storedData = verificationCodes.get(email);
+    if (!storedData || storedData.code !== code) {
+      return res.status(400).json({ message: 'Invalid verification code' });
+    }
+
+    if (isCodeExpired(storedData.timestamp)) {
+      verificationCodes.delete(email);
+      return res.status(400).json({ message: 'Verification code has expired. Please try logging in again.' });
+    }
+
+    const { userId, deviceId } = storedData;
+
+    await db.run('INSERT OR REPLACE INTO devices (user_id, device_id, last_login) VALUES (?, ?, CURRENT_TIMESTAMP)', [userId, deviceId]);
+
+    verificationCodes.delete(email);
+    req.session.userId = userId;
+    res.status(200).json({ message: 'Logged in successfully' });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Server error' });
+  }
 });
 
 module.exports = router;

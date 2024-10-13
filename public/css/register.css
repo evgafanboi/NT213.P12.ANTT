@@ -65,6 +65,8 @@ button[name="submitButton"] {
     margin-bottom: 2.0rem
 }
 
+button[name="verifyButton"]:hover,
+button[name="verifyButton"]:focus,
 button[name="submitButton"]:hover,
 button[name="submitButton"]:focus {
     background-color: #ffffff;

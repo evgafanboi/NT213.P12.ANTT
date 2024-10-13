@@ -16,6 +16,12 @@
         <button name="submitButton" type="submit">Login</button>
     </form>
     <a href="register"><p class="register-prompt">Chưa có tài khoản?</p></a>
-        <script src="js/login.js"></script>
+    <form id="twoFAForm" style="display: none;">
+        <input type="hidden" id="twoFAEmail" name="email">
+        <label for="verificationCode">Verification Code:</label>
+        <input type="text" id="verificationCode" name="verificationCode" required>
+        <button name = "submitButton" type="submit">Verify</button>
+    </form>
+    <script src="js/login.js"></script>
 </body>
 </html>
