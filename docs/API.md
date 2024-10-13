@@ -3,19 +3,51 @@
 ## Authentication
 
 ### Register User
-- **Endpoint**: `/auth/register`
+- **Endpoint**: `/auth/register/send-code`
 - **Method**: `POST`
-- **Description**: Registers a new user.
+- **Description**: Receive a new user registration request and send a verification code to the user's email.
 - **Request Body**:
   ```json
   {
     "username": "string (min 3 characters)",
-    "password": "string (min 6 characters)"
+    "password": "string (min 6 characters)",
+    "email": "string (email format)"
   }
   ```
 - **Responses**:
   - `201 Created`: User registered successfully.
   - `400 Bad Request`: Validation errors or username already exists.
+  - `500 Internal Server Error`: Server error.
+
+### Verify User Registration
+- **Endpoint**: `/auth/register/verify`
+- **Method**: `POST`
+- **Description**: Verify the user registration by entering the verification code received in the user's email.
+- **Request Body**:
+  ```json
+  {
+    "email": "string (email format)",
+    "code": "string (fixed 6 characters)"
+  }
+  ```
+- **Responses**:
+  - `200 OK`: User registration verified successfully.
+  - `400 Bad Request`: Invalid verification code.
+  - `500 Internal Server Error`: Server error.
+
+### Email Availability Check
+- **Endpoint**: `/auth/check-email`
+- **Method**: `POST`
+- **Description**: Check if an email is already registered.
+- **Request Body**:
+  ```json
+  {
+    "email": "string (email format)"
+  }
+  ```
+- **Responses**:
+  - `200 OK`: Email is available.
+  - `400 Bad Request`: Email is already registered.
   - `500 Internal Server Error`: Server error.
 
 ### Login User
@@ -33,6 +65,18 @@
   - `200 OK`: Logged in successfully.
   - `400 Bad Request`: Invalid credentials or validation errors.
   - `500 Internal Server Error`: Server error.
+
+### Verify 2FA
+- **Endpoint**: `/auth/verify-2fa`
+- **Method**: `POST`
+- **Description**: Verify the 2FA by entering the verification code received in the user's email. If the user has not logged in for 7 days, the user will be required to verify 2FA again. Alternatively, if the user is on a new device, the user will also be required to verify 2FA again.
+- **Request Body**:
+  ```json
+  {
+    "email": "string (email format)",
+    "code": "string (fixed 6 characters)"
+  }
+  ```
 
 ### Logout User
 - **Endpoint**: `/auth/logout`
