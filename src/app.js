@@ -69,7 +69,8 @@ const httpsServer = https.createServer(options, app);
 
 // Create HTTP server that redirects to HTTPS
 const httpServer = http.createServer((req, res) => {
-    res.writeHead(301, { "Location": "https://" + req.headers['host'] + req.url });
+    const httpsUrl = `https://${req.headers.host.split(':')[0]}:${HTTPS_PORT}${req.url}`;
+    res.writeHead(301, { "Location": httpsUrl });
     res.end();
 });
 
