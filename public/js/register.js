@@ -8,18 +8,7 @@ function validateEmail(email) {
     return re.test(String(email).toLowerCase());
 }
 
-// Function that sends POST to the server to check if the email is existing
-function checkEmailAvailability(email) {
-    return fetch('/auth/check-email', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email })
-    })
-    .then(response => response.json())
-    .then(data => data.available);
-}
-
-// A function to handle email input: if it does not meet the standard email format or a user with the same email is found, display an AJAX-wannabe message.
+// A function to handle email input
 function handleEmailInput(e) {
     const emailInput = e.target;
     const email = emailInput.value;
@@ -29,43 +18,78 @@ function handleEmailInput(e) {
         emailError.textContent = 'Please enter a valid email address';
         emailInput.setCustomValidity('Invalid email address');
     } else {
-        emailError.textContent = 'Checking email availability...';
-        checkEmailAvailability(email)
-            .then(available => {
-                if (available) {
-                    emailError.textContent = '';
-                    emailInput.setCustomValidity('');
-                } else {
-                    emailError.textContent = 'This email is already registered';
-                    emailInput.setCustomValidity('Email already registered');
-                }
-            })
-            .catch(error => {
-                console.error('Error checking email availability:', error);
-                emailError.textContent = 'Error checking email availability';
-            });
+        emailError.textContent = '';
+        emailInput.setCustomValidity('');
+    }
+}
+
+// Function to validate password strength
+function validatePassword(password) {
+    const minLength = 9;
+    const hasUppercase = /[A-Z]/.test(password);
+    const hasLowercase = /[a-z]/.test(password);
+    const hasNumber = /\d/.test(password);
+    const hasSpecialChar = /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]+/.test(password);
+
+    return {
+        isValid: password.length >= minLength && hasUppercase && hasLowercase && hasNumber && hasSpecialChar,
+        errors: [
+            password.length < minLength ? 'At least 9 characters long' : null,
+            !hasUppercase ? 'Include uppercase letters' : null,
+            !hasLowercase ? 'Include lowercase letters' : null,
+            !hasNumber ? 'Include numbers' : null,
+            !hasSpecialChar ? 'Include special characters' : null
+        ].filter(Boolean)
+    };
+}
+
+// Function to handle password input
+function handlePasswordInput(e) {
+    const passwordInput = e.target;
+    const password = passwordInput.value;
+    const passwordError = document.getElementById('passwordError');
+    const result = validatePassword(password);
+
+    if (!result.isValid) {
+        passwordError.innerHTML = 'Password must be:<br>' + result.errors.map(error => `- ${error}`).join('<br>');
+        passwordInput.setCustomValidity('Invalid password');
+    } else {
+        passwordError.textContent = '';
+        passwordInput.setCustomValidity('');
     }
 }
 
 document.addEventListener('DOMContentLoaded', () => {
-    const emailInput = document.querySelector('input[name="email"]');
-    emailInput.addEventListener('input', handleEmailInput);
+    document.querySelector('input[name="email"]').addEventListener('input', handleEmailInput);
+    document.querySelector('input[name="password"]').addEventListener('input', handlePasswordInput);
+
+    const submitButton = registerForm.querySelector('button[type="submit"]');
 
     registerForm.addEventListener('submit', async (e) => {
         e.preventDefault();
         
+        // Disable the submit button immediately
+        submitButton.disabled = true;
+        
         const formData = new FormData(registerForm);
         const email = formData.get('email');
-        const username = formData.get('username');
         const password = formData.get('password');
         const confirmPassword = formData.get('passwordClone');
 
         if (password !== confirmPassword) {
             alert('Mật khẩu không trùng khớp.');
+            submitButton.disabled = false; // Re-enable the button
             return;
         }
 
-        const data = { email, username, password };
+        const passwordValidation = validatePassword(password);
+        if (!passwordValidation.isValid) {
+            alert('Please enter a secure password that meets all requirements.');
+            submitButton.disabled = false; // Re-enable the button
+            return;
+        }
+
+        const data = { email, password };
 
         try {
             const response = await fetch('/auth/register/send-code', {
@@ -88,6 +112,8 @@ document.addEventListener('DOMContentLoaded', () => {
         } catch (error) {
             console.error('Lỗi:', error);
             alert('Gửi mã xác nhận không thành công!');
+        } finally {
+            submitButton.disabled = false; // Re-enable the button
         }
     });
 
@@ -100,7 +126,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const data = { email: userEmail, code };
 
         try {
-            const response = await fetch('/auth/register/verify', {
+            const response = await fetch('/auth/verify', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(data)
@@ -133,7 +159,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const timerId = setInterval(() => {
             const minutes = Math.floor(timeLeft / 60);
             const seconds = timeLeft % 60;
-            timerElement.textContent = `Time remaining: ${minutes}:${seconds.toString().padStart(2, '0')}`; // ticktack mf
+            timerElement.textContent = `Verification code valid for: ${minutes}:${seconds.toString().padStart(2, '0')}`; // ticktack mf
             
             if (timeLeft <= 0) {
                 clearInterval(timerId);
@@ -144,7 +170,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }, 1000);
     }
 
-    // Show the resend button once the timer expires
     function showResendButton() {
         const resendButton = document.createElement('button');
         resendButton.textContent = 'Resend Verification Code';
@@ -154,4 +179,18 @@ document.addEventListener('DOMContentLoaded', () => {
         });
         verificationForm.appendChild(resendButton);
     }
+
+    document.querySelectorAll('.password-toggle').forEach(toggle => {
+        toggle.textContent = 'show';
+        toggle.addEventListener('click', function() {
+            const input = this.previousElementSibling;
+            if (input.type === 'password') {
+                input.type = 'text';
+                this.textContent = 'hide';
+            } else {
+                input.type = 'password';
+                this.textContent = 'show';
+            }
+        });
+    });
 });

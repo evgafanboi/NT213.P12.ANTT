@@ -9,7 +9,7 @@ form.addEventListener('submit', async (e) => {
 
     const formData = new FormData(form);
     const data = {
-        username: formData.get('username'),
+        email: formData.get('email'),
         password: formData.get('password')
     };
 
@@ -53,7 +53,7 @@ twoFAForm.addEventListener('submit', async (e) => {
     };
 
     try {
-        const response = await fetch('/auth/verify-2fa', {
+        const response = await fetch('/auth/verify', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(data)
@@ -109,3 +109,17 @@ function showResendButton() {
     });
     twoFAForm.appendChild(resendButton);
 }
+
+document.querySelectorAll('.password-toggle').forEach(toggle => {
+    toggle.textContent = 'show';
+    toggle.addEventListener('click', function() {
+        const input = this.previousElementSibling;
+        if (input.type === 'password') {
+            input.type = 'text';
+            this.textContent = 'hide';
+        } else {
+            input.type = 'password';
+            this.textContent = 'show';
+        }
+    });
+});

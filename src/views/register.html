@@ -7,25 +7,32 @@
 </head>
 <body>
     <form id="registerForm">
+        <!-- Email  -->
         <label name="label">
-            <p class="info-hover" data-tooltip="thông tin này vô ích"></p>
+            <p class="info-hover" data-tooltip="thông tin 1"></p>
             Email <input type="text" name="email" required>
         </label>
-        <p id="emailError" class="error-message"></p><br><br>
+        <!-- Email error message -->
+        <p id="emailError" class="error-message"></p><br>
+        <!-- Password -->
         <label name="label">
-            <p class="info-hover" data-tooltip="thông tin này vô ích"></p>
-            Tên người dùng <input type="text" name="username" required>
-        </label><br>
-        <label name="label">
-            <p class="info-hover" data-tooltip="bạn vừa tiếp tục tìm xem thông tin vô ích"></p>
-            Mật khẩu
-            <input type="password" name="password" required>
+            <p class="info-hover" data-tooltip="thông tin 2"></p>
+            Mật khẩu 
+            <div class="password-container">
+                <input type="password" name="password" required>
+                <span class="password-toggle"></span>
+            </div>
         </label><br>
 
+        <div id="passwordError"></div>
+
         <label name="label">
-            <p class="info-hover" data-tooltip="deja vu"></p>
+            <p class="info-hover" data-tooltip="thong tin 3"></p>
             Nhập lại mật khẩu
-            <input type="password" name="passwordClone" required>
+            <div class="password-container">
+                <input type="password" name="passwordClone" required>
+                <span class="password-toggle"></span>
+            </div>
         </label><br>
         <button name="submitButton" type="submit">Send Verification Code</button>
     </form>

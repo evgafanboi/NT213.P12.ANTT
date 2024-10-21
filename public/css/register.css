@@ -41,6 +41,10 @@ input[type="password"] {
     border-radius: 4px;
     background-color: #3a3a3a;
     color: #ffffff;
+    height: 30px;
+    line-height: 40px;
+    padding-right: 50px;
+    margin-top: 0.7rem;
 }
 
 input[type="text"]:focus,
@@ -85,7 +89,7 @@ button[name="submitButton"]:focus {
 
 /*fancy effect*/
 .info-hover::after {
-    content: 'ⓘ';
+    content: '?';
     position: absolute;
     right: 0;
     top: 0;
@@ -121,4 +125,26 @@ button[name="submitButton"]:focus {
     color: cyan;
     font-size: 0.8em;
     margin-top: 5px;
+}
+
+.password-container {
+    position: relative;
+}
+
+.password-toggle {
+    position: absolute;
+    right: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    cursor: pointer;
+    user-select: none;
+    font-style: italic;
+    font-size: 0.8em;
+    color: rgba(255, 255, 255, 0.5);
+    transition: color 0.3s ease;
+    padding: 5px;
+}
+
+.password-toggle:hover {
+    color: rgba(255, 255, 255, 0.8);
 }
