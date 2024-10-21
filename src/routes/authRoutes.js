@@ -14,10 +14,19 @@ function isCodeExpired(timestamp) {
   return Date.now() - timestamp > expirationTime;
 }
 
+// Custom password validator
+const passwordValidator = (value) => {
+  const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>/?]).{9,}$/;
+  if (!passwordRegex.test(value)) {
+    throw new Error('Insecure password'); // this error goes back to the client
+  }
+  return true;
+};
+
 // Register route/send verification email
 router.post('/register/send-code', [
   body('email').isEmail().normalizeEmail(),
-  body('password').isLength({ min: 6 }),
+  body('password').custom(passwordValidator), // Custom requirements for countering brute-force attacks
 ], async (req, res) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
@@ -192,7 +201,7 @@ router.get('/profile', (req, res) => {
 // Update user profile
 router.put('/profile', [
   body('email').optional().isEmail().normalizeEmail(),
-  body('password').optional().isLength({ min: 6 }),
+  body('password').optional().custom(passwordValidator),
 ], async (req, res) => {
   if (!req.session.userId) {
     return res.status(401).json({ message: 'Unauthorized' });
