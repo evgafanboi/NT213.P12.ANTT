@@ -9,18 +9,17 @@
 - **Request Body**:
   ```json
   {
-    "username": "string (min 3 characters)",
-    "password": "string (min 6 characters)",
-    "email": "string (email format)"
+    "email": "string (email format)",
+    "password": "string (min 6 characters)"
   }
   ```
 - **Responses**:
-  - `201 Created`: User registered successfully.
-  - `400 Bad Request`: Validation errors or username already exists.
+  - `200 OK`: Verification code sent successfully.
+  - `400 Bad Request`: Invalid registration information.
   - `500 Internal Server Error`: Server error.
 
 ### Verify User Registration
-- **Endpoint**: `/auth/register/verify`
+- **Endpoint**: `/auth/verify`
 - **Method**: `POST`
 - **Description**: Verify the user registration by entering the verification code received in the user's email.
 - **Request Body**:
@@ -31,23 +30,8 @@
   }
   ```
 - **Responses**:
-  - `200 OK`: User registration verified successfully.
+  - `201 Created`: User registered successfully.
   - `400 Bad Request`: Invalid verification code.
-  - `500 Internal Server Error`: Server error.
-
-### Email Availability Check
-- **Endpoint**: `/auth/check-email`
-- **Method**: `POST`
-- **Description**: Check if an email is already registered.
-- **Request Body**:
-  ```json
-  {
-    "email": "string (email format)"
-  }
-  ```
-- **Responses**:
-  - `200 OK`: Email is available.
-  - `400 Bad Request`: Email is already registered.
   - `500 Internal Server Error`: Server error.
 
 ### Login User
@@ -57,19 +41,19 @@
 - **Request Body**:
   ```json
   {
-    "username": "string",
+    "email": "string (email format)",
     "password": "string"
   }
   ```
 - **Responses**:
-  - `200 OK`: Logged in successfully.
+  - `200 OK`: Logged in successfully or 2FA required.
   - `400 Bad Request`: Invalid credentials or validation errors.
   - `500 Internal Server Error`: Server error.
 
 ### Verify 2FA
-- **Endpoint**: `/auth/verify-2fa`
+- **Endpoint**: `/auth/verify`
 - **Method**: `POST`
-- **Description**: Verify the 2FA by entering the verification code received in the user's email. If the user has not logged in for 7 days, the user will be required to verify 2FA again. Alternatively, if the user is on a new device, the user will also be required to verify 2FA again.
+- **Description**: Verify the 2FA by entering the verification code received in the user's email. This endpoint is used for both registration verification and login 2FA.
 - **Request Body**:
   ```json
   {
@@ -77,6 +61,10 @@
     "code": "string (fixed 6 characters)"
   }
   ```
+- **Responses**:
+  - `200 OK`: Verification successful.
+  - `400 Bad Request`: Invalid verification code.
+  - `500 Internal Server Error`: Server error.
 
 ### Logout User
 - **Endpoint**: `/auth/logout`
