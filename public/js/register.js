@@ -23,7 +23,7 @@ function handleEmailInput(e) {
     }
 }
 
-// Function to validate password strength
+// Function to validate password strength, FE AJAX
 function validatePassword(password) {
     const minLength = 9;
     const hasUppercase = /[A-Z]/.test(password);
@@ -155,7 +155,7 @@ document.addEventListener('DOMContentLoaded', () => {
         timerElement.id = 'expirationTimer';
         verificationForm.appendChild(timerElement);
 
-        let timeLeft = 5 * 60; // 5 minutes, in seconds
+        let timeLeft = 300; // 5 minutes, - 300 seconds
         const timerId = setInterval(() => {
             const minutes = Math.floor(timeLeft / 60);
             const seconds = timeLeft % 60;

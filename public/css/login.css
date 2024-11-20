@@ -81,6 +81,16 @@ button[name="submitButton"]:focus {
     text-decoration: underline;
     text-decoration-color: #FFDD00;
 }
+
+.grey-link {
+    display: relative;
+    margin: 1rem;
+    color: #6b6b6b;
+    font-size: 12px;
+    text-decoration: underline;
+    text-decoration-color: #6b6b6b;
+}
+
 /*fancy effect*/
 .info-hover::after {
     content: '?';
@@ -122,7 +132,7 @@ button[name="submitButton"]:focus {
 .password-toggle {
     position: absolute;
     right: 10px;
-    top: 30%;
+    top: 50%;
     transform: translateY(-50%);
     cursor: pointer;
     user-select: none;

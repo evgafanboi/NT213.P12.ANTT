@@ -25,7 +25,7 @@ router.post('/', [
 
   try {
     const result = await db.run(
-      'INSERT INTO posts (user_id, title, content) VALUES (?, ?, ?)',
+      'INSERT INTO posts (email, title, content) VALUES (?, ?, ?)',
       [req.session.userId, title, content]
     );
     res.status(201).json({ id: result.id, message: 'Post created successfully' });
@@ -81,7 +81,7 @@ router.put('/:id', [
     if (!post) {
       return res.status(404).json({ message: 'Post not found' });
     }
-    if (post.user_id !== req.session.userId) {
+    if (post.email !== req.session.userId) {
       return res.status(403).json({ message: 'Forbidden' });
     }
 
@@ -103,7 +103,7 @@ router.delete('/:id', checkAuth, async (req, res) => {
     if (!post) {
       return res.status(404).json({ message: 'Post not found' });
     }
-    if (post.user_id !== req.session.userId) {
+    if (post.email !== req.session.userId) {
       return res.status(403).json({ message: 'Forbidden' });
     }
 

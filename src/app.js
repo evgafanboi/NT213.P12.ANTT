@@ -42,13 +42,15 @@ app.use('/auth', authRoutes);
 app.use('/api/posts', postRoutes);
 app.use('/api/comments', commentRoutes);
 
-// Redirect root to login
-app.get('/', (req, res) => res.redirect('/login'));
+// ROOT DIR
+app.get('/', (req, res) => res.redirect('/home'));
 
 // Serve login and register pages
 app.get('/login', (req, res) => res.sendFile(path.join(__dirname, 'views', 'login.html')));
 app.get('/register', (req, res) => res.sendFile(path.join(__dirname, 'views', 'register.html')));
 
+// Server publicly available pages
+app.get('/home', (req, res)  => res.sendFile(path.join(__dirname, 'views', 'home.html')));
 // 404 handler
 app.use((req, res) => res.status(404).sendFile(path.join(__dirname, 'views', '404.html')));
 

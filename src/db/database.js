@@ -15,44 +15,43 @@ const db = new sqlite3.Database(dbPath, (err) => {
 function createTables() {
   const createUsersTable = `
     CREATE TABLE IF NOT EXISTS users (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      username TEXT UNIQUE NOT NULL,
-      email TEXT UNIQUE NOT NULL,
+      email TEXT PRIMARY KEY NOT NULL,
+      username TEXT,
       password TEXT NOT NULL,
       created_at DATETIME DEFAULT CURRENT_TIMESTAMP
-    )`;
+    )`; // username can be arbitrary and will be set up later by the user in the user's interface once they are logged in. simplicity
   
   const createPostsTable = `
     CREATE TABLE IF NOT EXISTS posts (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
-      user_id INTEGER NOT NULL,
+      email TEXT NOT NULL,
       title TEXT NOT NULL,
       content TEXT NOT NULL,
       created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
       updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-      FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE
+      FOREIGN KEY (email) REFERENCES users (email) ON DELETE CASCADE
     )`;
   
   const createCommentsTable = `
     CREATE TABLE IF NOT EXISTS comments (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
-      user_id INTEGER NOT NULL,
+      email TEXT NOT NULL,
       post_id INTEGER NOT NULL,
       content TEXT NOT NULL,
       created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
       updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-      FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE,
+      FOREIGN KEY (email) REFERENCES users (email) ON DELETE CASCADE,
       FOREIGN KEY (post_id) REFERENCES posts (id) ON DELETE CASCADE
     )`;
 
   const createDevicesTable = `
     CREATE TABLE IF NOT EXISTS devices (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
-      user_id INTEGER NOT NULL,
+      user_email TEXT NOT NULL,
       device_id TEXT NOT NULL,
       last_login DATETIME DEFAULT CURRENT_TIMESTAMP,
-      FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE,
-      UNIQUE(user_id, device_id)
+      FOREIGN KEY (user_email) REFERENCES users (email) ON DELETE CASCADE,
+      UNIQUE(user_email, device_id)
     )`;
 
   db.serialize(() => {

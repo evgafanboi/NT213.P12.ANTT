@@ -29,7 +29,7 @@ form.addEventListener('submit', async (e) => {
         } else if (result.success) {
             alert('Logged in successfully');
             // Redirect to profile page or dashboard
-            // window.location.href = '/profile';
+            window.location.href = '/home';
         } else {
             alert(result.message || 'An error occurred during login');
         }
@@ -63,7 +63,7 @@ twoFAForm.addEventListener('submit', async (e) => {
         if (result.success) {
             alert('Logged in successfully');
             // Redirect to profile page or dashboard
-            // window.location.href = '/profile';
+            window.location.href = '/home';
         } else {
             alert(result.message || 'Invalid verification code');
             if (result.message.includes('expired')) {
