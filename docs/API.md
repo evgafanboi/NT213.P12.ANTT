@@ -18,10 +18,10 @@
   - `400 Bad Request`: Invalid registration information.
   - `500 Internal Server Error`: Server error.
 
-### Verify User Registration
+### Verify User Registration/2FA
 - **Endpoint**: `/auth/verify`
 - **Method**: `POST`
-- **Description**: Verify the user registration by entering the verification code received in the user's email.
+- **Description**: Verify the user registration or 2FA by entering the verification code received in the user's email. This endpoint is used for both registration verification and login 2FA.
 - **Request Body**:
   ```json
   {
@@ -48,22 +48,6 @@
 - **Responses**:
   - `200 OK`: Logged in successfully or 2FA required.
   - `400 Bad Request`: Invalid credentials or validation errors.
-  - `500 Internal Server Error`: Server error.
-
-### Verify 2FA
-- **Endpoint**: `/auth/verify`
-- **Method**: `POST`
-- **Description**: Verify the 2FA by entering the verification code received in the user's email. This endpoint is used for both registration verification and login 2FA.
-- **Request Body**:
-  ```json
-  {
-    "email": "string (email format)",
-    "code": "string (fixed 6 characters)"
-  }
-  ```
-- **Responses**:
-  - `200 OK`: Verification successful.
-  - `400 Bad Request`: Invalid verification code.
   - `500 Internal Server Error`: Server error.
 
 ### Logout User

@@ -46,7 +46,7 @@ To get started with this NodeJS based blog website, follow these simple steps:
    ```sh
    node app.js
    ```
-   as it will ignore the .env file entirely.
+      as it will ignore the .env file entirely.
    <br>
 3. **Access the Application**: 
    Open your web browser and go to `https://localhost:<your_desired_port>`. The default page is the login page as per the logic in `app.js`.
@@ -59,10 +59,10 @@ To get started with this NodeJS based blog website, follow these simple steps:
    mkdir ssl
    openssl req -x509 -newkey rsa:4096 -keyout ssl/key.pem -out ssl/cert.pem -days 365 -nodes
    ```
-   - Place your private key in `ssl/key.pem` and your certificate in `ssl/cert.pem`.
+   - Place your private key in `ssl/key.pem` and your certificate in `ssl/cert.pem`. Create `ssl` directory if you have not done so.
 
-   **NOTE**: Using self-signed certificates will make the browser issue a security warning. Ignore anyway. Or get a real certificate you poor monkey.
-   - Update the paths in `src/app.js` if necessary.
+   **NOTE**: Using self-signed certificates will make the browser issue a security warning. Ignore anyway. Or get a Let's Encrypt one. It's free and needs 1 line of command.
+   - Update the SSL paths in `src/app.js` if necessary.
 
 5. **HTTPS Configuration**:
    - The application now runs on HTTPS by default. However, it also hosts an HTTP server that redirects to HTTPS for every request.
@@ -77,7 +77,7 @@ To get started with this NodeJS based blog website, follow these simple steps:
 
    To install all packages, run the following command:
    ```sh
-   npm install express express-session connect-sqlite3 bcrypt express-validator helmet xss-clean nodemailer dotenv
+   npm install express express-session connect-sqlite3 bcrypt express-validator helmet xss-clean nodemailer dotenv generate-random-username
    ```
    <br>
 For any issues, please refer to the documentation or open an issue in the repository. 
