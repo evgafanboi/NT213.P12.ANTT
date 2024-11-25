@@ -22,8 +22,8 @@ form.addEventListener('submit', async (e) => {
 
         const result = await response.json();
         if (result.require2FA) {
-            form.style.display = 'none';
-            twoFAForm.style.display = 'block';
+            form.classList.add('hidden');
+            twoFAForm.classList.remove('hidden');
             userEmail = result.email;
             startExpirationTimer();
         } else if (result.success) {
@@ -102,8 +102,8 @@ function showResendButton() {
     const resendButton = document.createElement('button');
     resendButton.textContent = 'Resend Verification Code';
     resendButton.addEventListener('click', () => {
-        twoFAForm.style.display = 'none';
-        form.style.display = 'block';
+        twoFAForm.classList.add('hidden');
+        form.classList.remove('hidden');
         const timerElement = document.getElementById('expirationTimer');
         if (timerElement) timerElement.remove();
     });

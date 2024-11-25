@@ -103,8 +103,8 @@ document.addEventListener('DOMContentLoaded', () => {
             if (response.ok) {
                 alert(result.message);
                 userEmail = email;
-                registerForm.style.display = 'none';
-                verificationForm.style.display = 'block';
+                registerForm.classList.add('hidden');
+                verificationForm.classList.remove('hidden');
                 startExpirationTimer();
             } else {
                 alert(result.message);
@@ -174,8 +174,10 @@ document.addEventListener('DOMContentLoaded', () => {
         const resendButton = document.createElement('button');
         resendButton.textContent = 'Resend Verification Code';
         resendButton.addEventListener('click', () => {
-            verificationForm.style.display = 'none';
-            registerForm.style.display = 'block';
+            verificationForm.classList.add('hidden');
+            registerForm.classList.remove('hidden');
+            const timerElement = document.getElementById('expirationTimer');
+            if (timerElement) timerElement.remove();
         });
         verificationForm.appendChild(resendButton);
     }
