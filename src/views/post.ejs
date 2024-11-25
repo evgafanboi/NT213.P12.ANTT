@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NTee213 | <%= post.title %></title>
+    <link rel="stylesheet" href="/css/home.css">
+    <link rel="stylesheet" href="/css/post.css">
+    <link rel="stylesheet" href="/css/lib/github-markdown-dark.css">
+    <link rel="stylesheet" href="/css/lib/github-dark.css">
+</head>
+<body>
+    <div class="container">
+        <nav class="navbar">
+            <ul>
+                <li><a href="/home">Home</a></li>
+                <li><a href="#">Settings</a></li>
+            </ul>
+        </nav>
+        <button id="navbar-toggle" class="navbar-toggle">◀</button>
+        
+        <main class="content">
+            <div class="post-container markdown-body">
+                <article class="post">
+                    <header class="post-header">
+                        <h1><%= post.title %></h1>
+                        <div class="post-meta">
+                            <span class="author"><%= post.author_name || 'Anonymous' %></span>
+                            <span class="date"><%= new Date(post.created_at).toLocaleDateString() %></span>
+                        </div>
+                    </header>
+                    <div class="post-content">
+                        <%- renderedContent %>
+                    </div>
+                </article>
+            </div>
+        </main>
+    </div>
+    
+    <script src="/js/lib/highlight.min.js"></script>
+    <script>
+        // Initialize highlight.js with specific languages
+        hljs.configure({
+            languages: ['javascript', 'python', 'bash', 'html', 'css', 'sql'],
+            cssSelector: 'pre code'
+        });
+
+        document.addEventListener('DOMContentLoaded', () => {
+            // Apply highlighting to all code blocks
+            document.querySelectorAll('pre code').forEach((block) => {
+                hljs.highlightElement(block);
+            });
+
+            // Initialize navbar toggle
+            const navbar = document.querySelector('.navbar');
+            const toggleButton = document.getElementById('navbar-toggle');
+            
+            toggleButton.addEventListener('click', () => {
+                navbar.classList.toggle('collapsed');
+                toggleButton.textContent = navbar.classList.contains('collapsed') ? '▶' : '◀';
+                localStorage.setItem('navbarCollapsed', navbar.classList.contains('collapsed'));
+            });
+            
+            const isCollapsed = localStorage.getItem('navbarCollapsed') === 'true';
+            if (isCollapsed) {
+                navbar.classList.add('collapsed');
+                toggleButton.textContent = '▶';
+            }
+        });
+    </script>
+</body>
+</html>

@@ -3,6 +3,7 @@ const router = express.Router();
 const bcrypt = require('bcrypt');
 const { body, validationResult } = require('express-validator');
 const db = require('../db/database');
+const rateLimit = require('express-rate-limit');
 const { generateVerificationCode, sendVerificationEmail } = require('../utils/emailService');
 const { generateUsername } = require('../utils/usernameGenerator');
 
@@ -10,6 +11,13 @@ const { generateUsername } = require('../utils/usernameGenerator');
 const verificationCodes = new Map();
 
 const VALID_DURATION = 604800000; // 1 WEEK in milliseconds
+const WINDOWMS = 900000; // 15 minutes in milliseconds
+
+const rateLimiter = rateLimit({
+  windowMs: WINDOWMS, // 15 minutes
+  max: 5 // limit each IP to 5 login attempts per windowMs
+});
+
 
 // Check if the code is expired
 function isCodeExpired(timestamp) {
@@ -27,7 +35,7 @@ const passwordValidator = (value) => {
 };
 
 // Register route/send verification email
-router.post('/register/send-code', [
+router.post('/register/send-code', rateLimiter, [
   body('email').isEmail().normalizeEmail(),
   body('password').custom(passwordValidator),
 ], async (req, res) => {
@@ -64,7 +72,7 @@ router.post('/register/send-code', [
 });
 
 // Unified verification endpoint for both registration 2FA and login 2FA
-router.post('/verify', [
+router.post('/verify', rateLimiter, [
   body('email').isEmail().normalizeEmail(),
   body('code').isLength({ min: 6, max: 6 }).isNumeric(),
 ], async (req, res) => {
@@ -98,8 +106,9 @@ router.post('/verify', [
         return res.status(400).json({ message: 'Invalid registration information' }); // Vague error message to prevent exploits.
       }
 
+      const username = await generateUsername();
       const hashedPassword = await bcrypt.hash(password, 10); // Hash password
-      await db.run('INSERT INTO users (email, username, password) VALUES (?, ?, ?)', [email, generateUsername(), hashedPassword]);
+      await db.run('INSERT INTO users (email, username, password) VALUES (?, ?, ?)', [email, username, hashedPassword]);
 
       // Insert into devices table when creating new account to prevent double 2FA
       await db.run('INSERT INTO devices (user_email, device_id, last_login) VALUES (?, ?, CURRENT_TIMESTAMP)', [email, deviceId]);
@@ -126,7 +135,7 @@ router.post('/verify', [
 });
 
 // Login route
-router.post('/login', [
+router.post('/login', rateLimiter, [
   body('email').isEmail().normalizeEmail(),
   body('password').exists(),
 ], async (req, res) => {

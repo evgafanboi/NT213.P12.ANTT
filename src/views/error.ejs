@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= title %></title>
+    <link rel="stylesheet" href="<%= cssPath %>">
+</head>
+<body>
+    <div class="container">
+        <nav class="navbar">
+            <ul>
+                <li><a href="/home">Home</a></li>
+                <li><a href="#">Settings</a></li>
+            </ul>
+        </nav>
+        <button id="navbar-toggle" class="navbar-toggle">◀</button>
+        
+        <main class="content">
+            <div class="error-container">
+                <h1><%= title %></h1>
+                <p><%= message %></p>
+                <a href="/home" class="back-home">Return to Home</a>
+            </div>
+        </main>
+    </div>
+    
+    <script>
+        // Include navbar toggle functionality
+        document.addEventListener('DOMContentLoaded', () => {
+            const navbar = document.querySelector('.navbar');
+            const toggleButton = document.getElementById('navbar-toggle');
+            
+            toggleButton.addEventListener('click', () => {
+                navbar.classList.toggle('collapsed');
+                toggleButton.textContent = navbar.classList.contains('collapsed') ? '▶' : '◀';
+                localStorage.setItem('navbarCollapsed', navbar.classList.contains('collapsed'));
+            });
+            
+            const isCollapsed = localStorage.getItem('navbarCollapsed') === 'true';
+            if (isCollapsed) {
+                navbar.classList.add('collapsed');
+                toggleButton.textContent = '▶';
+            }
+        });
+    </script>
+</body>
+</html>

@@ -3,9 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Minimal Blog</title>
+    <title>NTee213</title>
     <link rel="stylesheet" href="css/home.css">
-    <script src="/js/home.js" defer></script>
+    <link rel="stylesheet" href="css/floating-button.css">
+    <script src="/js/home.js"></script>
 </head>
 <body>
     <div class="container">
@@ -15,6 +16,7 @@
                 <li><a href="#">Settings</a></li>
             </ul>
         </nav>                  <!-------------NAVBAR ENDS----------->
+        <button id="navbar-toggle" class="navbar-toggle">◀</button>
         <div class="content">
             <header class="header">
                 <div class="page-name">NTee213</div>
@@ -28,6 +30,24 @@
                 </div>
             </main>
         </div>
+        <!-- CREATE POST BUTTON -->
+        <div id="create-post-button" style="display: none;">
+            <button class="floating-button">🖊️</button>
+        </div>
+
+        <!-- CREATE POST MODAL -->
+        <div id="post-modal" class="modal">
+            <div class="modal-content">
+                <span class="close">&times;</span>
+                <h2>Create New Post</h2>
+                <form id="post-form">
+                    <input type="text" id="post-title" placeholder="Title" required>
+                    <textarea id="post-content" placeholder="What's on your mind?" required></textarea>
+                    <button type="submit">Post</button>
+                </form>
+            </div>
+        </div>
+        
     </div>
 </body>
 </html>

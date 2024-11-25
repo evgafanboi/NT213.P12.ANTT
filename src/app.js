@@ -11,15 +11,38 @@ const postRoutes = require('./routes/postRoutes');
 const commentRoutes = require('./routes/commentRoutes');
 const fs = require('fs');
 const http = require('http');
+const rateLimit = require('express-rate-limit');
+const timeout = require('connect-timeout');
+const ejs = require('ejs');
+const marked = require('marked');
+const DOMPurify = require('isomorphic-dompurify');
+const db = require('./db/database');
 
 const app = express();
 
+
 // Middleware setup
-app.use(helmet());
+app.use(helmet({
+  contentSecurityPolicy: {
+    directives: {
+      defaultSrc: ["'self'"],
+      scriptSrc: ["'self'", "'unsafe-inline'"],
+      styleSrc: ["'self'", "'unsafe-inline'"],
+      imgSrc: ["'self'"],
+      fontSrc: ["'self'"],
+    },
+  },
+  referrerPolicy: { policy: 'same-origin' },
+  crossOriginEmbedderPolicy: true,
+  crossOriginOpenerPolicy: { policy: 'same-origin' },
+  crossOriginResourcePolicy: { policy: 'same-origin' }
+}));
 app.use(xss());
 app.use(express.json({ limit: '10kb' }));
 app.use(express.urlencoded({ extended: true, limit: '10kb' }));
 app.use(express.static(path.join(__dirname, '../public')));
+// Timeout
+app.use(timeout('5s'));
 
 // Session configuration
 app.use(session({
@@ -27,14 +50,16 @@ app.use(session({
     db: 'data/sessions.sqlite',
     dir: path.join(__dirname, '..')
   }),
-  secret: process.env.SESSION_SECRET, // TODO: Change this to a random 64 character string using `openssl rand -base64 64`  
+  secret: process.env.SESSION_SECRET,
   resave: false,
   saveUninitialized: false,
   cookie: { 
-    secure: true, // Force HTTPS
+    secure: true,
     httpOnly: true,
-    sameSite: 'strict'
-  }
+    sameSite: 'strict',
+    maxAge: 24 * 60 * 60 * 1000 // 24 hours
+  },
+  name: 'sessionId'
 }));
 
 // Route handlers
@@ -42,22 +67,107 @@ app.use('/auth', authRoutes);
 app.use('/api/posts', postRoutes);
 app.use('/api/comments', commentRoutes);
 
+// Add rate limiting for all routes
+const WINDOWMS = 600000; // 10 minutes in milliseconds
+const limiter = rateLimit({
+  windowMs: WINDOWMS, // 15 minutes
+  max: 100 // limit each IP to 100 requests per windowMs
+});
+app.use(limiter);
+
+
+// Set EJS as the view engine
+app.set('view engine', 'ejs');
+app.set('views', path.join(__dirname, 'views'));
+
+
+
 // ROOT DIR
-app.get('/', (req, res) => res.redirect('/home'));
+app.get('/', limiter, (req, res) => res.redirect('/home'));
 
 // Serve login and register pages
-app.get('/login', (req, res) => res.sendFile(path.join(__dirname, 'views', 'login.html')));
-app.get('/register', (req, res) => res.sendFile(path.join(__dirname, 'views', 'register.html')));
+app.get('/login', limiter, (req, res) => res.sendFile(path.join(__dirname, 'views', 'login.html')));
+app.get('/register', limiter, (req, res) => res.sendFile(path.join(__dirname, 'views', 'register.html')));
 
-// Server publicly available pages
-app.get('/home', (req, res)  => res.sendFile(path.join(__dirname, 'views', 'home.html')));
+
+// Serve publicly available pages
+app.get('/home', limiter, (req, res) => {
+    res.sendFile(path.join(__dirname, 'views', 'home.html'));
+});
+
+app.get('/post/:id', limiter, async (req, res) => {
+    try {
+        // Get post directly from database
+        const post = await db.get(`
+            SELECT 
+                p.id,
+                p.title,
+                p.content,
+                p.created_at,
+                p.updated_at,
+                u.username as author_name
+            FROM posts p
+            LEFT JOIN users u ON p.email = u.email
+            WHERE p.id = ?
+        `, [req.params.id]);
+
+        if (!post) {
+            return res.status(404).render('error', {
+                title: '404 - Not Found',
+                message: 'Post not found',
+                cssPath: '/css/home.css'
+            });
+        }
+
+        // Configure marked with highlight.js
+        marked.setOptions({
+            highlight: function(code, language) {
+                const validLanguage = language && require('highlight.js').getLanguage(language) ? language : 'plaintext';
+                return require('highlight.js').highlight(code, { language: validLanguage }).value;
+            },
+            langPrefix: 'hljs language-',
+            breaks: true,
+            gfm: true
+        });
+
+        const renderedContent = marked.parse(post.content);
+        const sanitizedContent = DOMPurify.sanitize(renderedContent, {
+            ADD_ATTR: ['class', 'id']
+        });
+        
+        res.render('post', { 
+            post,
+            renderedContent: sanitizedContent
+        });
+
+    } catch (error) {
+        console.error('Error in /post/:id route:', error);
+        res.status(500).render('error', {
+            title: '500 - Server Error',
+            message: 'Failed to load post',
+            cssPath: '/css/home.css'
+        });
+    }
+});
+
 // 404 handler
-app.use((req, res) => res.status(404).sendFile(path.join(__dirname, 'views', '404.html')));
+app.use((req, res) => {
+    res.status(404).render('error', {
+        title: '404 - Not Found',
+        message: 'Page not found',
+        cssPath: '/css/home.css'
+    });
+});
+
 
 // Error handler
 app.use((err, req, res, next) => {
-  console.error(err.stack);
-  res.status(500).sendFile(path.join(__dirname, 'views', '500.html'));
+    console.error(err.stack);
+    res.status(500).render('error', {
+        title: '500 - Server Error',
+        message: 'Internal server error',
+        cssPath: '/css/home.css'
+    });
 });
 
 // SSL/TLS configuration
