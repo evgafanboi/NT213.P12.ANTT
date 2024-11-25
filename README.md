@@ -42,11 +42,7 @@ To get started with this NodeJS based blog website, follow these simple steps:
    npm start
    ```
 
-   - **Do not** run the application with
-   ```sh
-   node app.js
-   ```
-      as it will ignore the .env file entirely.
+   - **Do not** run the application by `node app.js` as it will ignore the .env file entirely.
    <br>
 3. **Access the Application**: 
    Open your web browser and go to `https://localhost:<your_desired_port>`. The default page is the login page as per the logic in `app.js`.
@@ -77,8 +73,10 @@ To get started with this NodeJS based blog website, follow these simple steps:
 
    To install all packages, run the following command:
    ```sh
-   npm install express express-session connect-sqlite3 bcrypt express-validator helmet xss-clean nodemailer dotenv generate-random-username
+   npm install express express-session connect-sqlite3 bcrypt express-validator helmet xss-clean nodemailer dotenv generate-random-username express-rate-limit connect-timeout marked highlight.js dompurify isomorphic-dompurify jsdom github-markdown-css ejs
    ```
+   > If prompted, run `npm audit fix`
+   
    <br>
 For any issues, please refer to the documentation or open an issue in the repository. 
 
