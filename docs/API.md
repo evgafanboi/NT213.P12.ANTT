@@ -1,3 +1,7 @@
+
+> ! useless documentation and is no longer updated
+
+
 # API Documentation
 
 ## Authentication
