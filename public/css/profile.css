@@ -1,0 +1,122 @@
+.profile-container {
+    max-width: 800px;
+    margin: 0;
+    margin-left: 20px;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: left;
+}
+
+.user-info {
+    background-color: #222;
+    padding: 20px;
+    border-radius: 8px;
+    margin-top: 30px;
+    margin-bottom: 30px;
+    max-width: 600px;
+}
+
+.user-info p {
+    margin: 10px 0;
+    color: #ffdd00;
+}
+
+.user-posts {
+    margin-top: 30px;
+    max-width: 600px;
+}
+
+.post-preview {
+    background-color: #222;
+    padding: 15px;
+    border-radius: 8px;
+    margin-top: 30px;
+    margin-bottom: 15px;
+    transition: opacity 0.3s ease;
+}
+
+.post-preview h3 {
+    color: #ffdd00;
+    margin-bottom: 10px;
+}
+
+.post-date {
+    color: #888;
+    font-size: 0.9em;
+}
+
+.view-post {
+    display: inline-block;
+    color: #ffdd00;
+    text-decoration: none;
+    margin-top: 10px;
+    margin-left: 10px;
+}
+
+.delete-post {
+    display: inline-block;
+    color: #ffdd00;
+    background-color: #222;
+    padding: 10px;
+    margin-top: 10px;
+    margin-left: 10px;
+    border-radius: 4px;
+    border: none;
+    cursor: pointer;
+}
+
+.username-container {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.user-info-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.user-info-label {
+    font-weight: bold;
+}
+
+.edit-username-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 1.2em;
+    padding: 5px;
+    padding-left: 10px;
+    color: #ffdd00;
+}
+
+.username-edit-form {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+
+.username-edit-form input {
+    background-color: #333;
+    border: 1px solid #ffdd00;
+    color: #ffdd00;
+    padding: 5px;
+    border-radius: 4px;
+}
+
+.username-edit-form button {
+    background-color: #ffdd00;
+    color: #1a1a1a;
+    border: none;
+    padding: 5px 10px;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.no-posts {
+    margin-top: 30px;
+    color: #888;
+    font-style: italic;
+}

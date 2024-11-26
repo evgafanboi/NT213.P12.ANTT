@@ -17,6 +17,7 @@ const ejs = require('ejs');
 const marked = require('marked');
 const DOMPurify = require('isomorphic-dompurify');
 const db = require('./db/database');
+const { renderAndSanitizeMarkdown } = require('./utils/markdown');
 
 const app = express();
 
@@ -91,63 +92,52 @@ app.get('/register', limiter, (req, res) => res.sendFile(path.join(__dirname, 'v
 
 
 // Serve publicly available pages
-app.get('/home', limiter, (req, res) => {
-    res.sendFile(path.join(__dirname, 'views', 'home.html'));
-});
-
-app.get('/post/:id', limiter, async (req, res) => {
+app.get('/home', limiter, async (req, res) => {
     try {
-        // Get post directly from database
-        const post = await db.get(`
+        const posts = await db.all(`
             SELECT 
                 p.id,
                 p.title,
                 p.content,
                 p.created_at,
-                p.updated_at,
                 u.username as author_name
             FROM posts p
             LEFT JOIN users u ON p.email = u.email
-            WHERE p.id = ?
-        `, [req.params.id]);
+            ORDER BY p.created_at DESC
+            LIMIT 10
+        `);
 
-        if (!post) {
-            return res.status(404).render('error', {
-                title: '404 - Not Found',
-                message: 'Post not found',
-                cssPath: '/css/home.css'
-            });
-        }
-
-        // Configure marked with highlight.js
-        marked.setOptions({
-            highlight: function(code, language) {
-                const validLanguage = language && require('highlight.js').getLanguage(language) ? language : 'plaintext';
-                return require('highlight.js').highlight(code, { language: validLanguage }).value;
-            },
-            langPrefix: 'hljs language-',
-            breaks: true,
-            gfm: true
-        });
-
-        const renderedContent = marked.parse(post.content);
-        const sanitizedContent = DOMPurify.sanitize(renderedContent, {
-            ADD_ATTR: ['class', 'id']
-        });
+        const { renderAndSanitizeMarkdown } = require('./utils/markdown');
         
-        res.render('post', { 
-            post,
-            renderedContent: sanitizedContent
-        });
+        // Pass renderedContent directly like in post.ejs
+        const renderedPosts = posts.map(post => ({
+            ...post,
+            renderedContent: renderAndSanitizeMarkdown(post.content || '')
+        }));
 
+        res.render('home', { 
+            posts: renderedPosts,
+            renderAndSanitizeMarkdown,  // Pass the function too
+            isLoggedIn: !!req.session.userId
+        });
     } catch (error) {
-        console.error('Error in /post/:id route:', error);
+        console.error('Error fetching posts:', error);
         res.status(500).render('error', {
             title: '500 - Server Error',
-            message: 'Failed to load post',
+            message: 'Failed to load posts',
             cssPath: '/css/home.css'
         });
     }
+});
+
+// Redirect /post/:id to /api/posts/:id/page
+app.get('/post/:id', (req, res) => {
+    res.redirect(`/api/posts/${req.params.id}/page`);
+});
+
+// Redirect /profile to /auth/profile/page
+app.get('/profile', (req, res) => {
+    res.redirect('/auth/profile/page');
 });
 
 // 404 handler

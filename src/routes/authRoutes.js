@@ -6,6 +6,7 @@ const db = require('../db/database');
 const rateLimit = require('express-rate-limit');
 const { generateVerificationCode, sendVerificationEmail } = require('../utils/emailService');
 const { generateUsername } = require('../utils/usernameGenerator');
+const { renderAndSanitizeMarkdown } = require('../utils/markdown');
 
 // Temporary storage for verification codes
 const verificationCodes = new Map();
@@ -206,23 +207,57 @@ router.post('/logout', (req, res) => {
   });
 });
 
-// Get user profile
-router.get('/profile', (req, res) => {
-  if (!req.session.userId) {
-    return res.status(401).json({ message: 'Unauthorized' });
-  }
+// API endpoint for profile data (used by fetchUserProfile())
+router.get('/profile', async (req, res) => {
+    if (!req.session.userId) {
+        return res.status(401).json({ message: 'Unauthorized' });
+    }
+    try {
+        const user = await db.get('SELECT email, username FROM users WHERE email = ?', 
+            [req.session.userId]);
+        res.json(user);
+    } catch (error) {
+        console.error('Error fetching profile:', error);
+        res.status(500).json({ message: 'Server error' });
+    }
+});
 
-  db.get('SELECT email, username FROM users WHERE email = ?', [req.session.userId])
-    .then(user => {
-      if (!user) {
-        return res.status(404).json({ message: 'User not found' });
-      }
-      res.json(user);
-    })
-    .catch(error => {
-      console.error(error);
-      res.status(500).json({ message: 'Server error' });
-    });
+// Page render endpoint
+router.get('/profile/page', async (req, res) => {
+    if (!req.session.userId) {
+        return res.redirect('/login');  // If attempting to view profile without being logged in, redirect to /login
+    }
+
+    try {
+        const user = await db.get('SELECT * FROM users WHERE email = ?', [req.session.userId]);
+        const posts = await db.all(`
+            SELECT id, title, content, created_at 
+            FROM posts 
+            WHERE email = ? 
+            ORDER BY created_at DESC`, 
+            [req.session.userId]
+        );
+
+        // Add null check for post content
+        posts.forEach(post => {
+            if (!post.content) {
+                post.content = ''; // Set empty string if content is null, failsafe
+            }
+        });
+
+        res.render('profile', { 
+            user,
+            posts,
+            renderAndSanitizeMarkdown: require('../utils/markdown').renderAndSanitizeMarkdown
+        });
+    } catch (error) {
+        console.error('Error:', error);
+        res.status(500).render('error', {
+            title: 'Server Error',
+            message: 'Failed to load profile',
+            cssPath: '/css/home.css'
+        });
+    }
 });
 
 // Update user profile
@@ -257,6 +292,7 @@ router.put('/profile', [
   }
 });
 
+// helper function, probably not needed but left just in case
 function isAuthenticated(req, res, next) {
   if (req.session.userId) {
     next();
@@ -264,5 +300,29 @@ function isAuthenticated(req, res, next) {
     res.status(401).json({ message: 'Unauthorized' });
   }
 }
+
+// Update username endpoint
+router.post('/update-username', async (req, res) => {
+    if (!req.session.userId) {
+        return res.status(401).json({ message: 'Unauthorized' });
+    }
+
+    const { username } = req.body;
+    
+    if (!username || username.trim().length === 0) {
+        return res.status(400).json({ message: 'Username cannot be empty' });
+    }
+
+    try {
+        await db.run('UPDATE users SET username = ? WHERE email = ?', 
+            [username.trim(), req.session.userId]);
+        
+        res.json({ success: true, message: 'Username updated successfully' });
+    } catch (error) {
+        console.error('Error updating username:', error);
+        res.status(500).json({ message: 'Failed to update username' });
+    }
+});
+
 
 module.exports = router;

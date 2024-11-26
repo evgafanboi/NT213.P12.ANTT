@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Profile | <%= user.username %></title>
+    <link rel="stylesheet" href="/css/home.css">
+    <link rel="stylesheet" href="/css/profile.css">
+</head>
+<body>
+    <div class="container">
+        <nav class="navbar">
+            <ul>
+                <li><a href="/home">Home</a></li>
+                <li><a href="#">Settings</a></li>
+            </ul>
+        </nav>
+        <button id="navbar-toggle" class="navbar-toggle">◀</button>
+        
+        <main class="content">
+            <div class="profile-container">
+                <h1>Profile</h1>
+                <div class="user-info">
+                    <div class="username-container">
+                        <div class="user-info-item"><p class="user-info-label">Username: </p><span id="username-display"><%= user.username %></span></div>
+                        <button class="edit-username-btn" title="Edit username">✏️</button>
+                    </div>
+                    <div class="user-info-item"><p class="user-info-label">Email: </p><p><%= user.email %></p></div>
+                    <div class="user-info-item"><p class="user-info-label">Member since: </p><p><%= new Date(user.created_at).toLocaleDateString() %></p></div>
+                </div>
+                
+                <div class="user-posts">
+                    <h2>Your Posts</h2>
+                    <% if (posts && posts.length > 0) { %>
+                        <% posts.forEach(post => { %>
+                            <article class="post-preview">
+                                <h3><%= post.title %></h3>
+                                <span class="post-date"><%= new Date(post.created_at).toLocaleDateString() %></span>
+                                <a href="/post/<%= post.id %>" class="view-post">👁️ View Post</a>
+                                <button class="delete-post" data-post-id="<%= post.id %>">❌ Delete Post</button>
+                            </article>
+                        <% }) %>
+                    <% } else { %>
+                        <p class="no-posts">No posts yet</p>
+                    <% } %>
+                </div>
+            </div>
+        </main>
+    </div>
+    
+    <script src="/js/navbar.js"></script>
+    <script src="/js/profile.js"></script>
+</body>
+</html>

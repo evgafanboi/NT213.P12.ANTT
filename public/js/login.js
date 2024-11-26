@@ -61,7 +61,7 @@ twoFAForm.addEventListener('submit', async (e) => {
 
         const result = await response.json();
         if (result.success) {
-            alert('Logged in successfully');
+            //alert('Logged in successfully');  // annoying therefore deprecated
             // Redirect to profile page or dashboard
             window.location.href = '/home';
         } else {

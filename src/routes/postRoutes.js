@@ -6,6 +6,8 @@ const { JSDOM } = require('jsdom');
 const window = new JSDOM('').window;
 const DOMPurify = createDOMPurify(window);
 const db = require('../db/database');
+const path = require('path');
+const { renderAndSanitizeMarkdown } = require(path.join(__dirname, '..', 'utils', 'markdown'));
 
 // Middleware to check authentication
 const checkAuth = (req, res, next) => {
@@ -88,7 +90,7 @@ router.get('/', async (req, res) => {
 });
 
 // Get a specific post
-router.get('/:id', async (req, res) => {
+router.get('/:id/page', async (req, res) => {
     try {
         const post = await db.get(`
             SELECT 
@@ -104,12 +106,27 @@ router.get('/:id', async (req, res) => {
         `, [req.params.id]);
 
         if (!post) {
-            return res.status(404).json({ message: 'Post not found' });
+            return res.status(404).render('error', {
+                title: '404 - Not Found',
+                message: 'Post not found',
+                cssPath: '/css/home.css'
+            });
         }
-        res.json(post);
+
+        const sanitizedContent = renderAndSanitizeMarkdown(post.content);
+        
+        res.render('post', { 
+            post,
+            renderedContent: sanitizedContent
+        });
+
     } catch (error) {
-        console.error(error);
-        res.status(500).json({ message: 'Server error' });
+        console.error('Error in post route:', error);
+        res.status(500).render('error', {
+            title: '500 - Server Error',
+            message: 'Failed to load post',
+            cssPath: '/css/home.css'
+        });
     }
 });
 
@@ -151,21 +168,22 @@ router.put('/:id', [
 
 // Delete a post
 router.delete('/:id', checkAuth, async (req, res) => {
-  try {
-    const post = await db.get('SELECT * FROM posts WHERE id = ?', [req.params.id]);
-    if (!post) {
-      return res.status(404).json({ message: 'Post not found' });
-    }
-    if (post.email !== req.session.userId) {
-      return res.status(403).json({ message: 'Forbidden' });
-    }
+    try {
+        // First verify the post exists and belongs to the user
+        const post = await db.get('SELECT * FROM posts WHERE id = ?', [req.params.id]);
+        if (!post) {
+            return res.status(404).json({ message: 'Post not found' });
+        }
+        if (post.email !== req.session.userId) {
+            return res.status(403).json({ message: 'Forbidden' });
+        }
 
-    await db.run('DELETE FROM posts WHERE id = ?', [req.params.id]);
-    res.json({ message: 'Post deleted successfully' });
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: 'Server error' });
-  }
+        await db.run('DELETE FROM posts WHERE id = ?', [req.params.id]);
+        res.json({ message: 'Post deleted successfully' });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: 'Server error' });
+    }
 });
 
 module.exports = router;
