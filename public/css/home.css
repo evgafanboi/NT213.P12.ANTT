@@ -197,12 +197,6 @@ overflow-y: auto;
     margin-bottom: 20px;
 }
 
-.post:hover {
-    cursor: pointer;
-    transition: 0.5s;
-    box-shadow: 0 0 10px rgba(255, 221, 0, 0.5);
-}
-
 .post-header {
     margin-bottom: 15px;
 }
@@ -215,6 +209,88 @@ overflow-y: auto;
 
 .post-content {
     line-height: 1.6;
+}
+
+/* Syntax highlighting colors */
+.hljs {
+    display: block;
+    padding: 0.5em;
+    background: #1a1a1a !important;
+    color: #ffdd00 !important;
+}
+
+.hljs-keyword,
+.hljs-selector-tag,
+.hljs-literal,
+.hljs-section,
+.hljs-link {
+    color: #ff79c6;
+}
+
+.hljs-string,
+.hljs-title,
+.hljs-name,
+.hljs-type,
+.hljs-attribute,
+.hljs-symbol,
+.hljs-bullet,
+.hljs-addition,
+.hljs-variable,
+.hljs-template-tag,
+.hljs-template-variable {
+    color: #50fa7b;
+}
+
+.hljs-comment,
+.hljs-quote,
+.hljs-deletion,
+.hljs-meta {
+    color: #6272a4;
+}
+
+.hljs-keyword,
+.hljs-selector-tag,
+.hljs-literal,
+.hljs-title,
+.hljs-section,
+.hljs-doctag,
+.hljs-type,
+.hljs-name,
+.hljs-strong {
+    font-weight: bold;
+}
+
+.hljs-emphasis {
+    font-style: italic;
+}
+
+.markdown-body {
+    background-color: transparent !important;
+    color: #ffdd00 !important;
+    overflow-wrap: break-word;
+    word-wrap: break-word;
+}
+
+.markdown-body pre {
+    background-color: #1a1a1a !important;
+    padding: 8px !important;
+    border-radius: 6px;
+    margin: 8px 0 !important;
+    max-width: 100%;
+    overflow-x: auto;
+    white-space: pre-wrap;
+    position: relative;
+}
+
+.markdown-body code {
+    background-color: #1a1a1a !important;
+    color: #ffdd00 !important;
+    font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, Courier, monospace;
+    font-size: 14px;
+    padding: 0.2em 0.4em;
+    border-radius: 3px;
+    overflow-wrap: break-word;
+    word-wrap: break-word;
 }
 
 .pagination {
@@ -267,12 +343,17 @@ overflow-y: auto;
     max-width: 800px;
 }
 
+.post-preview h3 {
+    font-size: 1.5em;
+    font-weight: bold;
+}
+
 .post-content-preview {
     color: #ccc;
     margin: 10px 0;
     font-size: 0.9em;
     line-height: 1.5;
-    max-height: 100px;
+    max-height: 150px;
     overflow: hidden;
     position: relative;
     background-color: #1e1e1e;
@@ -289,4 +370,19 @@ overflow-y: auto;
     height: 50px;
     background: linear-gradient(transparent, #222);
     pointer-events: none;
+}
+
+.post-content-preview h3 {
+    color: #dadada
+}
+.view-post {
+    color: #00ff99;
+    cursor: pointer;
+    text-decoration: underline;
+    text-decoration-color: #FFDD00; 
+}
+
+.view-post:hover {
+    color: #ffffff;
+    transition: 0.3s;
 }

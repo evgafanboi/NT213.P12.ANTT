@@ -15,7 +15,7 @@
                 <li><a href="#">Settings</a></li>
             </ul>
         </nav>
-        <button id="navbar-toggle" class="navbar-toggle">◀</button>
+        <button id="navbar-toggle" class="navbar-toggle">≡</button>
         
         <main class="content">
             <div class="profile-container">
@@ -29,21 +29,83 @@
                     <div class="user-info-item"><p class="user-info-label">Member since: </p><p><%= new Date(user.created_at).toLocaleDateString() %></p></div>
                 </div>
                 
-                <div class="user-posts">
-                    <h2>Your Posts</h2>
-                    <% if (posts && posts.length > 0) { %>
-                        <% posts.forEach(post => { %>
-                            <article class="post-preview">
-                                <h3><%= post.title %></h3>
-                                <span class="post-date"><%= new Date(post.created_at).toLocaleDateString() %></span>
-                                <a href="/post/<%= post.id %>" class="view-post">👁️ View Post</a>
-                                <button class="delete-post" data-post-id="<%= post.id %>">❌ Delete Post</button>
-                            </article>
-                        <% }) %>
-                    <% } else { %>
-                        <p class="no-posts">No posts yet</p>
-                    <% } %>
+                <div class="content-tabs">
+                    <div class="tab-buttons">
+                        <button class="tab-btn active" data-tab="posts">Your Posts</button>
+                        <button class="tab-btn" data-tab="comments">Your Comments</button>
+                    </div>
+                    
+                    <div class="tab-content">
+                        <!-- Posts Tab -->
+                        <div id="posts" class="tab-pane active">
+                            <% if (posts && posts.length > 0) { %>
+                                <% posts.forEach(post => { %>
+                                    <article class="post-preview">
+                                        <h3><%= post.title %></h3>
+                                        <div class="post-content-preview"><%- post.content %></div>
+                                        <span class="post-date"><%= new Date(post.created_at).toLocaleDateString() %></span>
+                                        <div class="post-actions">
+                                            <a href="/post/<%= post.id %>" class="view-post">👁️ View Post</a>
+                                            <button class="edit-post-btn" data-post-id="<%= post.id %>">✏️ Edit Post</button>
+                                            <button class="delete-post-btn" data-post-id="<%= post.id %>">❌ Delete Post</button>
+                                        </div>
+                                    </article>
+                                <% }) %>
+                            <% } else { %>
+                                <p class="no-posts">No posts yet</p>
+                            <% } %>
+                        </div>
+
+                        <!-- Comments Tab -->
+                        <div id="comments" class="tab-pane">
+                            <% if (comments && comments.length > 0) { %>
+                                <% comments.forEach(comment => { %>
+                                    <article class="comment-preview">
+                                        <div class="comment-content-preview"><%- comment.content %></div>
+                                        <div class="comment-meta">
+                                            <a href="/post/<%= comment.post_id %>" class="comment-post-link">View Post</a>
+                                            <span class="comment-date"><%= new Date(comment.created_at).toLocaleDateString() %></span>
+                                        </div>
+                                        <div class="comment-actions">
+                                            <button class="edit-comment-btn" data-comment-id="<%= comment.id %>">✏️ Edit</button>
+                                            <button class="delete-comment-btn" data-comment-id="<%= comment.id %>">❌ Delete</button>
+                                        </div>
+                                    </article>
+                                <% }) %>
+                            <% } else { %>
+                                <p class="no-comments">No comments yet</p>
+                            <% } %>
+                        </div>
+                    </div>
                 </div>
+
+                <!-- EDIT POST MODAL -->
+                <div id="edit-modal" class="modal">
+                    <div class="modal-content">
+                        <span class="close">&times;</span>
+                        <h2>Edit Post</h2>
+                        <form id="edit-form">
+                            <input type="hidden" id="edit-post-id">
+                            <input type="text" id="edit-title" placeholder="Title" required>
+                            <textarea id="edit-content" placeholder="What's on your mind?" required></textarea>
+                            <button type="submit">Update</button>
+                        </form>
+                    </div>  
+                </div>
+                
+                <!-- EDIT COMMENT MODAL -->
+                <div id="edit-comment-modal" class="modal">
+                    <div class="modal-content">
+                        <span class="close">&times;</span>
+                        <h2>Edit Comment</h2>
+                        <form id="edit-comment-form">
+                            <input type="hidden" id="edit-comment-id">
+                            <textarea id="edit-comment-content" placeholder="Your comment" required></textarea>
+                            <button type="submit">Update</button>
+                        </form>
+                    </div>  
+                </div>
+                
             </div>
         </main>
     </div>

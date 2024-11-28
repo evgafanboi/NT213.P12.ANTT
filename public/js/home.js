@@ -137,114 +137,14 @@ function initializeNavbarToggle() {
     const isCollapsed = localStorage.getItem('navbarCollapsed') === 'true';
     if (isCollapsed) {
         navbar.classList.add('collapsed');
-        toggleButton.textContent = '▶';
+        toggleButton.textContent = '≡';
     }
 }
 
-// Add these functions
-async function fetchPosts(page = 1, limit = 10) {
-    try {
-        const response = await fetch(`/api/posts?page=${page}&limit=${limit}`);
-        if (!response.ok) throw new Error('Failed to fetch posts');
-        return await response.json();
-    } catch (error) {
-        console.error('Error fetching posts:', error);
-        return [];
-    }
-}
-
-async function fetchTotalPosts() {
-    try {
-        const response = await fetch('/api/posts/count');
-        if (!response.ok) throw new Error('Failed to fetch post count');
-        const data = await response.json();
-        return data.total;
-    } catch (error) {
-        console.error('Error fetching post count:', error);
-        return 0;
-    }
-}
-
-async function initializeNewsFeed() {
-    const newsFeed = document.querySelector('.news-feed');
-    const postsPerPage = 10;
-    let currentPage = 1;
-    
-    // Get total posts for pagination
-    const totalPosts = await fetchTotalPosts();
-    const totalPages = Math.ceil(totalPosts / postsPerPage);
-    
-    // Initial load
-    const posts = await fetchPosts(currentPage, postsPerPage);
-    renderPosts(posts);
-    
-    // Add pagination controls if needed
-    if (totalPages > 1) {
-        renderPagination(currentPage, totalPages);
-    }
-}
-
-function renderPosts(posts) {
-    const newsFeed = document.querySelector('.news-feed');
-    newsFeed.innerHTML = posts.map(post => `
-        <article class="post" data-post-id="${post.id}">
-            <header class="post-header">
-                <h2>${post.title}</h2>
-                <div class="post-meta">
-                    <span class="author">${post.author_name || 'Anonymous'}</span>
-                    <span class="date">${new Date(post.created_at).toLocaleDateString()}</span>
-                </div>
-            </header>
-            <div class="post-content">
-                ${post.content.length > 200 ? post.content.substring(0, 200) + '...' : post.content}    
-            </div>
-        </article>
-    `).join('');
-
-document.querySelectorAll('.post').forEach(post => {
-    post.addEventListener('click', function() {
-        const postId = this.dataset.postId;
-        window.location.href = `/post/${postId}`;
-    });
-});
-}
-
-function renderPagination(currentPage, totalPages) {
-    const newsFeed = document.querySelector('.news-feed');
-    const paginationDiv = document.createElement('div');
-    paginationDiv.className = 'pagination';
-    
-    paginationDiv.innerHTML = `
-        <button class="prev-page" ${currentPage === 1 ? 'disabled' : ''}>Previous</button>
-        <span>Page ${currentPage} of ${totalPages}</span>
-        <button class="next-page" ${currentPage === totalPages ? 'disabled' : ''}>Next</button>
-    `;
-    
-    newsFeed.after(paginationDiv);
-    
-    // Add pagination event listeners
-    document.querySelector('.prev-page')?.addEventListener('click', () => {
-        if (currentPage > 1) loadPage(currentPage - 1);
-    });
-    
-    document.querySelector('.next-page')?.addEventListener('click', () => {
-        if (currentPage < totalPages) loadPage(currentPage + 1);
-    });
-}
-
-async function loadPage(page) {
-    const posts = await fetchPosts(page);
-    renderPosts(posts);
-    // Update pagination UI
-    const totalPosts = await fetchTotalPosts();
-    const totalPages = Math.ceil(totalPosts / 10);
-    renderPagination(page, totalPages);
-}
-// Call the function on page load
+// Update the DOMContentLoaded event listener
 window.addEventListener('DOMContentLoaded', async () => {
     await checkLoginStatus();
     await initializePostButton();
     initializeNavbarToggle();
-    await initializeNewsFeed();
 });
 

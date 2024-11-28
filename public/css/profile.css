@@ -1,11 +1,18 @@
-.profile-container {
+.content-container {
     max-width: 800px;
+    margin: 0;
+    margin-left: 20px;
+    padding: 20px;
+}
+
+.profile-container {
     margin: 0;
     margin-left: 20px;
     padding: 20px;
     display: flex;
     flex-direction: column;
-    align-items: left;
+    align-items: center;
+    overflow: auto;
 }
 
 .user-info {
@@ -14,7 +21,7 @@
     border-radius: 8px;
     margin-top: 30px;
     margin-bottom: 30px;
-    max-width: 600px;
+    min-width: 600px;
 }
 
 .user-info p {
@@ -54,7 +61,8 @@
     margin-left: 10px;
 }
 
-.delete-post {
+.edit-post-btn,
+.delete-post-btn {
     display: inline-block;
     color: #ffdd00;
     background-color: #222;
@@ -62,8 +70,15 @@
     margin-top: 10px;
     margin-left: 10px;
     border-radius: 4px;
-    border: none;
+    border: 1px solid #ffdd00;
     cursor: pointer;
+    transition: 0.3s ease;
+}
+
+.edit-post-btn:hover,
+.delete-post-btn:hover {
+    background-color: #ffdd00;
+    color: #1a1a1a;
 }
 
 .username-container {
@@ -119,4 +134,254 @@
     margin-top: 30px;
     color: #888;
     font-style: italic;
+}
+
+/* Edit modal styles */
+.modal {
+    display: none; /* Hidden by default */
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.7); /* Dark overlay */
+    backdrop-filter: blur(3px);
+}
+
+.modal-content {
+    background-color: #222;
+    margin: 10% auto;
+    padding: 20px;
+    border: 1px solid #ffdd00;
+    border-radius: 8px;
+    width: 80%;
+    max-width: 600px;
+    position: relative;
+}
+
+/* Close button */
+.close {
+    color: #ffdd00;
+    float: right;
+    font-size: 28px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: color 0.3s ease;
+}
+
+.close:hover {
+    color: #fff;
+}
+
+/* Edit form styles */
+#edit-form,
+#edit-comment-form {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    margin-top: 20px;
+}
+
+#edit-form input[type="text"],
+#edit-form textarea,
+#edit-comment-form textarea,
+#edit-comment-form input[type="text"] {
+    background-color: #333;
+    border: 1px solid #444;
+    border-radius: 4px;
+    padding: 10px;
+    color: #fff;
+    font-size: 16px;
+}
+
+#edit-form input[type="text"],
+#edit-comment-form input[type="text"] {
+    height: 40px;
+}
+
+#edit-form textarea,
+#edit-comment-form textarea {
+    height: 200px;
+    resize: vertical;
+    min-height: 100px;
+}
+
+#edit-form input[type="text"]:focus,
+#edit-form textarea:focus,
+#edit-comment-form textarea:focus,
+#edit-comment-form input[type="text"]:focus {
+    border-color: #ffdd00;
+    outline: none;
+}
+
+#edit-form button[type="submit"],
+#edit-comment-form button[type="submit"] {
+    background-color: #ffdd00;
+    color: #1a1a1a;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: bold;
+    transition: all 0.3s ease;
+}
+
+#edit-form button[type="submit"]:hover,
+#edit-comment-form button[type="submit"]:hover {
+    background-color: #fff;
+}
+
+/* Modal title */
+.modal-content h2 {
+    color: #ffdd00;
+    margin-bottom: 20px;
+    padding-right: 30px; /* Space for close button */
+}
+
+/* Tab Styles */
+.content-tabs {
+    margin-top: 30px;
+    max-width: 600px;
+}
+
+.tab-buttons {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 20px;
+}
+
+.tab-btn {
+    padding: 10px 20px;
+    background: #333;
+    border: 1px solid #ffdd00;
+    color: #ffdd00;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.tab-btn.active {
+    background: #ffdd00;
+    color: #1a1a1a;
+}
+
+.tab-pane {
+    display: none;
+}
+
+.tab-pane.active {
+    display: block;
+}
+
+/* Comment Styles */
+.comment-preview {
+    background-color: #222;
+    padding: 15px;
+    border-radius: 8px;
+    margin-bottom: 15px;
+    transition: opacity 0.3s ease;
+    display: flex;
+    flex-direction: column;
+}
+
+.comment-content-preview {
+    color: #fff;
+    margin-bottom: 10px;
+}
+
+.comment-content-preview h3 {
+    color: #ffdd00;
+    margin-bottom: 10px;
+}
+
+.comment-content-preview pre {
+    background-color: #333;
+    padding: 10px;
+    border-radius: 4px;
+    margin: 10px 0;
+}
+
+.comment-meta {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    color: #888;
+    font-size: 0.9em;
+    margin-bottom: 10px;
+}
+
+.comment-post-link {
+    color: #ffdd00;
+    text-decoration: none;
+}
+
+.comment-actions {
+    display: flex;
+    gap: 10px;
+}
+
+.edit-comment-btn,
+.delete-comment-btn {
+    padding: 5px 10px;
+    background: #333;
+    border: 1px solid #ffdd00;
+    color: #ffdd00;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.edit-comment-btn:hover,
+.delete-comment-btn:hover {
+    background: #ffdd00;
+    color: #1a1a1a;
+}
+
+/* Add markdown styling for post previews */
+.post-content-preview {
+    max-height: 200px;
+    overflow: hidden;
+    position: relative;
+}
+
+.post-content-preview:after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 50px;
+    background: linear-gradient(transparent, #1a1a1a);
+}
+
+/* Style code blocks in previews */
+.post-content-preview pre {
+    max-height: 150px;
+    overflow: hidden;
+}
+
+.post-content-preview code {
+    font-family: monospace;
+    background: #2d2d2d;
+    padding: 2px 4px;
+    border-radius: 3px;
+}
+
+/* Style other markdown elements */
+.post-content-preview h1,
+.post-content-preview h2,
+.post-content-preview h3 {
+    margin-top: 0.5em;
+    margin-bottom: 0.5em;
+}
+
+.post-content-preview p {
+    margin-bottom: 0.5em;
+}
+
+.post-content-preview ul,
+.post-content-preview ol {
+    padding-left: 1.5em;
+    margin-bottom: 0.5em;
 }

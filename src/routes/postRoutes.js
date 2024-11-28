@@ -6,8 +6,24 @@ const { JSDOM } = require('jsdom');
 const window = new JSDOM('').window;
 const DOMPurify = createDOMPurify(window);
 const db = require('../db/database');
+const rateLimit = require('express-rate-limit');
 const path = require('path');
 const { renderAndSanitizeMarkdown } = require(path.join(__dirname, '..', 'utils', 'markdown'));
+
+const WINDOWMS = 900000; // 15 minutes in milliseconds
+
+const rateLimiter = rateLimit({
+  windowMs: WINDOWMS, // 15 minutes
+  max: 100 // limit each IP to 100 requests per windowMs
+});
+
+const strictRateLimiter = rateLimit({
+  windowMs: WINDOWMS, // 15 minutes
+  max: 10, // limit each IP to 10 requests per windowMs
+  message: 'Too many requests, please try again later.',
+  standardHeaders: true, // Return rate limit info in the `RateLimit-*` headers
+  legacyHeaders: false, // Disable the `X-RateLimit-*` headers  
+});
 
 // Middleware to check authentication
 const checkAuth = (req, res, next) => {
@@ -18,7 +34,7 @@ const checkAuth = (req, res, next) => {
 };
 
 // Create a new post
-router.post('/', [
+router.post('/', strictRateLimiter, [
   body('title').trim().escape(),
   body('content').trim(),
 ], checkAuth, async (req, res) => {
@@ -49,7 +65,7 @@ router.post('/', [
 });
 
 // Get total number of posts
-router.get('/count', async (req, res) => {
+router.get('/count', rateLimiter, async (req, res) => {
     try {
         const result = await db.get('SELECT COUNT(*) as total FROM posts');
         res.json({ total: result.total });
@@ -60,7 +76,7 @@ router.get('/count', async (req, res) => {
 });
 
 // Modify the get all posts route to support pagination
-router.get('/', async (req, res) => {
+router.get('/', rateLimiter, async (req, res) => {
     try {
         const page = parseInt(req.query.page) || 1;
         const limit = parseInt(req.query.limit) || 10;
@@ -90,7 +106,7 @@ router.get('/', async (req, res) => {
 });
 
 // Get a specific post
-router.get('/:id/page', async (req, res) => {
+router.get('/:id/page', rateLimiter, async (req, res) => {
     try {
         const post = await db.get(`
             SELECT 
@@ -112,12 +128,11 @@ router.get('/:id/page', async (req, res) => {
                 cssPath: '/css/home.css'
             });
         }
-
         const sanitizedContent = renderAndSanitizeMarkdown(post.content);
-        
         res.render('post', { 
             post,
-            renderedContent: sanitizedContent
+            renderedContent: sanitizedContent,
+            isLoggedIn: !!req.session.userId
         });
 
     } catch (error) {
@@ -131,7 +146,7 @@ router.get('/:id/page', async (req, res) => {
 });
 
 // Update a post
-router.put('/:id', [
+router.put('/:id', strictRateLimiter, [
   body('title').optional().isLength({ min: 1 }).trim(),
   body('content').optional().isLength({ min: 1 }).trim(),
 ], checkAuth, async (req, res) => {
@@ -167,7 +182,7 @@ router.put('/:id', [
 });
 
 // Delete a post
-router.delete('/:id', checkAuth, async (req, res) => {
+router.delete('/:id', rateLimiter, checkAuth, async (req, res) => {
     try {
         // First verify the post exists and belongs to the user
         const post = await db.get('SELECT * FROM posts WHERE id = ?', [req.params.id]);
@@ -182,6 +197,80 @@ router.delete('/:id', checkAuth, async (req, res) => {
         res.json({ message: 'Post deleted successfully' });
     } catch (error) {
         console.error(error);
+        res.status(500).json({ message: 'Server error' });
+    }
+});
+
+// Get posts review and render home page
+router.get('/home', rateLimiter, async (req, res) => {
+    try {
+        const posts = await db.all(`
+            SELECT 
+                p.id,
+                p.title,
+                p.content,
+                p.created_at,
+                u.username as author_name
+            FROM posts p
+            LEFT JOIN users u ON p.email = u.email
+            ORDER BY p.created_at DESC
+            LIMIT 10
+        `);
+
+        // Pre-render markdown for each post
+        const postsWithMarkdown = posts.map(post => ({
+            ...post,
+            title: post.title, // Keep title as is
+            content: renderAndSanitizeMarkdown(post.content), // Pre-render the content
+            created_at: post.created_at,
+            author_name: post.author_name
+        }));
+
+        res.render('home', { 
+            posts: postsWithMarkdown,
+            isLoggedIn: !!req.session.userId
+        });
+    } catch (error) {
+        console.error('Error fetching posts:', error);
+        res.status(500).render('error', {
+            title: '500 - Server Error',
+            message: 'Failed to load posts',
+            cssPath: '/css/home.css'
+        });
+    }
+});
+
+// Get raw post content for editing
+router.get('/:id/raw', rateLimiter, checkAuth, async (req, res) => {
+    try {
+        const post = await db.get(`
+            SELECT 
+                p.id,
+                p.title,
+                p.content,
+                p.email
+            FROM posts p
+            WHERE p.id = ?
+        `, [req.params.id]);
+
+        if (!post) {
+            return res.status(404).json({ message: 'Post not found' });
+        }
+
+        // Check if the user owns this post
+        if (post.email !== req.session.userId) {
+            return res.status(403).json({ message: 'Forbidden' });
+        }
+
+        // Return raw content without markdown rendering
+        res.json({
+            id: post.id,
+            title: post.title,
+            content: post.content
+        });
+
+    } catch (error) {
+        console.error('Error fetching raw post:', error);
         res.status(500).json({ message: 'Server error' });
     }
 });

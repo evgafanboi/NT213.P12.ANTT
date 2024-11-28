@@ -1,7 +1,71 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    /*outline: 1px solid red;*/ /*strictly debugging*/
+}
+
+
+.content {
+    flex: 1;
+    align-items: center;
+    padding: 0;
+    padding-bottom: 50px;
+    width: 100%;
+    overflow: auto;
+}
+
+.header {
+    min-width: 100%;
+}
+
+.container {
+    display: flex;
+    min-height: 100vh;
+    width: 100%;
+    position: relative;
+}
+
+.navbar.collapsed + .navbar-toggle + .content {
+    margin-left: 0;
+}
+
+html, body {
+    height: 100%;
+    overflow: auto;
+    background-color: #1a1a1a;
+    color: #ffdd00;
+    font-family: Arial, sans-serif;
+}
+
+@media (max-width: 768px) {
+    .navbar {
+        width: 100px;
+    }
+
+    .header {
+        padding: 10px;
+    }
+
+    .logo {
+        font-size: 20px;
+    }
+
+    .username {
+        font-size: 16px;
+    }
+}
+
 .post-container {
     max-width: 900px;
     margin: 0 auto;
     padding: 40px 20px;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    box-sizing: border-box;
+    overflow-wrap: break-word;
+    word-wrap: break-word;
 }
 
 .post {
@@ -10,18 +74,32 @@
     padding: 30px;
 }
 
+.post-content pre {
+    padding: 10px;
+}
+
+.username {
+    display: flex;
+    align-items: center;
+}
+
 /* Override some github-markdown-dark.css styles */
 .markdown-body {
     background-color: transparent !important;
     color: #ffdd00 !important;
+    overflow-wrap: break-word;
+    word-wrap: break-word;
 }
 
 .markdown-body pre {
     background-color: #1a1a1a !important;
-    padding: 16px;
+    padding: 8px !important;
     border-radius: 6px;
-    margin: 16px 0;
+    margin: 8px 0 !important;
+    max-width: 100%;
     overflow-x: auto;
+    white-space: pre-wrap;
+    position: relative;
 }
 
 .markdown-body code {
@@ -31,6 +109,8 @@
     font-size: 14px;
     padding: 0.2em 0.4em;
     border-radius: 3px;
+    overflow-wrap: break-word;
+    word-wrap: break-word;
 }
 
 .post-header {
@@ -53,15 +133,10 @@
     transition: all 0.3s ease;
 }
 
-.news-feed .post:hover {
-    border-color: #ffdd00;
-    box-shadow: 0 0 10px rgba(255, 221, 0, 0.5);
-}
-
 /* Syntax highlighting colors */
 .hljs {
     display: block;
-    padding: 1em;
+    padding: 0.5em;
     background: #1a1a1a !important;
     color: #ffdd00 !important;
 }
@@ -109,4 +184,187 @@
 
 .hljs-emphasis {
     font-style: italic;
+}
+
+.comments-section {
+    margin-top: 40px;
+    padding-top: 20px;
+    border-top: 1px solid #333;
+    max-width: 100%;
+    width: 100%;
+}
+
+.comment-form {
+    margin-bottom: 20px;
+}
+
+.comment-form textarea {
+    width: 100%;
+    min-height: 100px;
+    padding: 10px;
+    margin-bottom: 10px;
+    background-color: #1a1a1a;
+    border: 1px solid #333;
+    border-radius: 4px;
+    color: #fff;
+    resize: vertical;
+}
+
+.comment-form button {
+    background-color: #ffdd00;
+    color: #1a1a1a;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.comment {
+    background-color: #222;
+    padding: 20px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+}
+
+.submit-comment:hover {
+    background-color: #00ff99;
+    transition: 0.3s ease;
+}
+.comment:hover {
+    border-color: #333;
+    box-shadow: 0 0 5px rgba(51, 51, 51, 0.5);
+}
+
+.comment-content {
+    margin-top: 10px;
+    width: 100%;
+    max-width: 100%;
+    overflow-wrap: break-word;
+    word-wrap: break-word;
+}
+
+.comment-header {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 8px;
+    color: #888;
+    font-size: 0.9em;
+}
+
+.comment-author {
+    color: #ffdd00;
+}
+
+.login-prompt {
+    text-align: center;
+    padding: 20px;
+    background-color: #1a1a1a;
+    border-radius: 4px;
+}
+
+.login-prompt a {
+    color: #ffdd00;
+    text-decoration: underline;
+}
+
+/* Add these header styles from home.css */
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px;
+    background-color: #222;
+}
+
+.page-name {
+    font-size: 24px;
+    color: #ffdd00;
+}
+
+.username {
+    display: flex;
+    align-items: center;
+}
+
+.login-redirect {
+    color: #ffdd00;
+    text-decoration: underline;
+    text-decoration-color: #FFDD00;
+}
+
+.comment-content.markdown-body {
+    display: block;
+    width: 100%;
+    box-sizing: border-box;
+    overflow-wrap: break-word;
+    word-wrap: break-word;
+    max-width: 100%;
+}
+
+.comment-content.markdown-body pre {
+    max-width: 100%;
+    overflow-x: auto;
+    white-space: pre;
+    display: block;
+    box-sizing: border-box;
+}
+
+.comment-content.markdown-body code {
+    max-width: 100%;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+    display: inline-block;
+}
+
+.comment-author {
+    font-weight: bold;
+    color: #00ff99;
+}
+
+.comment pre {
+    max-width: 100%;
+    overflow-x: auto;
+}
+
+.comment code {
+    max-width: 100%;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+}
+
+.code-block-header {
+    position: absolute;
+    top: 4px;
+    right: 4px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    opacity: 0;
+    transition: opacity 0.2s;
+}
+
+.copy-button {
+    background: #333;
+    border: none;
+    border-radius: 4px;
+    padding: 4px 8px;
+    color: #ffdd00;
+    cursor: pointer;
+    font-size: 12px;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.copy-button:hover {
+    background: #444;
+}
+
+.markdown-body pre:hover .code-block-header {
+    opacity: 1;
 }

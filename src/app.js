@@ -14,10 +14,7 @@ const http = require('http');
 const rateLimit = require('express-rate-limit');
 const timeout = require('connect-timeout');
 const ejs = require('ejs');
-const marked = require('marked');
-const DOMPurify = require('isomorphic-dompurify');
 const db = require('./db/database');
-const { renderAndSanitizeMarkdown } = require('./utils/markdown');
 
 const app = express();
 
@@ -70,9 +67,11 @@ app.use('/api/comments', commentRoutes);
 
 // Add rate limiting for all routes
 const WINDOWMS = 600000; // 10 minutes in milliseconds
+
+// very easy limit for all public routes
 const limiter = rateLimit({
-  windowMs: WINDOWMS, // 15 minutes
-  max: 100 // limit each IP to 100 requests per windowMs
+  windowMs: 600000, // 10 minutes
+  max: 50 // limit each IP to 50 requests per windowMs
 });
 app.use(limiter);
 
@@ -84,7 +83,7 @@ app.set('views', path.join(__dirname, 'views'));
 
 
 // ROOT DIR
-app.get('/', limiter, (req, res) => res.redirect('/home'));
+app.get('/', limiter, (req, res) => res.redirect('/api/posts/home'));
 
 // Serve login and register pages
 app.get('/login', limiter, (req, res) => res.sendFile(path.join(__dirname, 'views', 'login.html')));
@@ -92,50 +91,14 @@ app.get('/register', limiter, (req, res) => res.sendFile(path.join(__dirname, 'v
 
 
 // Serve publicly available pages
-app.get('/home', limiter, async (req, res) => {
-    try {
-        const posts = await db.all(`
-            SELECT 
-                p.id,
-                p.title,
-                p.content,
-                p.created_at,
-                u.username as author_name
-            FROM posts p
-            LEFT JOIN users u ON p.email = u.email
-            ORDER BY p.created_at DESC
-            LIMIT 10
-        `);
+app.get('/home', async (req, res) => res.redirect('/api/posts/home')); //(limiter is delegated to postRoutes' limiter)
 
-        const { renderAndSanitizeMarkdown } = require('./utils/markdown');
-        
-        // Pass renderedContent directly like in post.ejs
-        const renderedPosts = posts.map(post => ({
-            ...post,
-            renderedContent: renderAndSanitizeMarkdown(post.content || '')
-        }));
-
-        res.render('home', { 
-            posts: renderedPosts,
-            renderAndSanitizeMarkdown,  // Pass the function too
-            isLoggedIn: !!req.session.userId
-        });
-    } catch (error) {
-        console.error('Error fetching posts:', error);
-        res.status(500).render('error', {
-            title: '500 - Server Error',
-            message: 'Failed to load posts',
-            cssPath: '/css/home.css'
-        });
-    }
-});
-
-// Redirect /post/:id to /api/posts/:id/page
+// Redirect /post/:id to /api/posts/:id/page  (limiter is delegated to postRoutes' limiter)
 app.get('/post/:id', (req, res) => {
     res.redirect(`/api/posts/${req.params.id}/page`);
 });
 
-// Redirect /profile to /auth/profile/page
+// Redirect /profile to /auth/profile/page  (limiter is delegated to authRoutes' limiter)
 app.get('/profile', (req, res) => {
     res.redirect('/auth/profile/page');
 });

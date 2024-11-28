@@ -12,13 +12,17 @@ const { renderAndSanitizeMarkdown } = require('../utils/markdown');
 const verificationCodes = new Map();
 
 const VALID_DURATION = 604800000; // 1 WEEK in milliseconds
-const WINDOWMS = 900000; // 15 minutes in milliseconds
 
-const rateLimiter = rateLimit({
-  windowMs: WINDOWMS, // 15 minutes
-  max: 5 // limit each IP to 5 login attempts per windowMs
+const strictRateLimiter = rateLimit({
+  windowMs: 900000, // 15 minutes
+  max: 10 // limit each IP to 5 login attempts per windowMs
 });
 
+// Less strict limit for frequent endpoints (/profile)
+const rateLimiter = rateLimit({
+  windowMs: 600000, // 10 minutes
+  max: 50 // limit each IP to 50 requests per windowMs
+});
 
 // Check if the code is expired
 function isCodeExpired(timestamp) {
@@ -36,7 +40,7 @@ const passwordValidator = (value) => {
 };
 
 // Register route/send verification email
-router.post('/register/send-code', rateLimiter, [
+router.post('/register/send-code', strictRateLimiter, [
   body('email').isEmail().normalizeEmail(),
   body('password').custom(passwordValidator),
 ], async (req, res) => {
@@ -73,7 +77,7 @@ router.post('/register/send-code', rateLimiter, [
 });
 
 // Unified verification endpoint for both registration 2FA and login 2FA
-router.post('/verify', rateLimiter, [
+router.post('/verify', strictRateLimiter, [
   body('email').isEmail().normalizeEmail(),
   body('code').isLength({ min: 6, max: 6 }).isNumeric(),
 ], async (req, res) => {
@@ -136,7 +140,7 @@ router.post('/verify', rateLimiter, [
 });
 
 // Login route
-router.post('/login', rateLimiter, [
+router.post('/login', strictRateLimiter, [
   body('email').isEmail().normalizeEmail(),
   body('password').exists(),
 ], async (req, res) => {
@@ -198,7 +202,7 @@ router.get('/check-session', (req, res) => {
 });
 
 // Logout route -------------------------------------TODO: remove user's device record from the db------------------------------------------------
-router.post('/logout', (req, res) => {
+router.post('/logout', strictRateLimiter, (req, res) => {
   req.session.destroy((err) => {
     if (err) {
       return res.status(500).json({ message: 'Could not log out, please try again' });
@@ -208,7 +212,7 @@ router.post('/logout', (req, res) => {
 });
 
 // API endpoint for profile data (used by fetchUserProfile())
-router.get('/profile', async (req, res) => {
+router.get('/profile', rateLimiter, async (req, res) => {
     if (!req.session.userId) {
         return res.status(401).json({ message: 'Unauthorized' });
     }
@@ -221,34 +225,46 @@ router.get('/profile', async (req, res) => {
         res.status(500).json({ message: 'Server error' });
     }
 });
-
-// Page render endpoint
-router.get('/profile/page', async (req, res) => {
+  
+// profile page render endpoint
+router.get('/profile/page', rateLimiter, async (req, res) => {
     if (!req.session.userId) {
-        return res.redirect('/login');  // If attempting to view profile without being logged in, redirect to /login
+        return res.redirect('/login');
     }
 
     try {
-        const user = await db.get('SELECT * FROM users WHERE email = ?', [req.session.userId]);
-        const posts = await db.all(`
-            SELECT id, title, content, created_at 
-            FROM posts 
-            WHERE email = ? 
-            ORDER BY created_at DESC`, 
-            [req.session.userId]
-        );
+        const [user, posts, comments] = await Promise.all([
+            db.get('SELECT * FROM users WHERE email = ?', 
+                [req.session.userId]),
+            db.all(`
+                SELECT id, title, content, created_at 
+                FROM posts 
+                WHERE email = ? 
+                ORDER BY created_at DESC`, 
+                [req.session.userId]
+            ),
+            db.all(`
+                SELECT 
+                    c.*,
+                    p.title as post_title
+                FROM comments c
+                LEFT JOIN posts p ON c.post_id = p.id
+                WHERE c.email = ?
+                ORDER BY c.created_at DESC`,
+                [req.session.userId]
+            )
+        ]);
 
-        // Add null check for post content
-        posts.forEach(post => {
-            if (!post.content) {
-                post.content = ''; // Set empty string if content is null, failsafe
-            }
-        });
+        // Render markdown for posts
+        const renderedPosts = posts.map(post => ({
+            ...post,
+            content: renderAndSanitizeMarkdown(post.content)
+        }));
 
         res.render('profile', { 
             user,
-            posts,
-            renderAndSanitizeMarkdown: require('../utils/markdown').renderAndSanitizeMarkdown
+            posts: renderedPosts,
+            comments
         });
     } catch (error) {
         console.error('Error:', error);
@@ -260,8 +276,8 @@ router.get('/profile/page', async (req, res) => {
     }
 });
 
-// Update user profile
-router.put('/profile', [
+// Update user profile, not being used currently
+router.put('/profile', strictRateLimiter, [
   body('email').optional().isEmail().normalizeEmail(),
   body('password').optional().custom(passwordValidator),
 ], async (req, res) => {
@@ -302,7 +318,7 @@ function isAuthenticated(req, res, next) {
 }
 
 // Update username endpoint
-router.post('/update-username', async (req, res) => {
+router.post('/update-username', strictRateLimiter, async (req, res) => {
     if (!req.session.userId) {
         return res.status(401).json({ message: 'Unauthorized' });
     }

@@ -7,28 +7,6 @@
     <link rel="stylesheet" href="/css/home.css">
     <link rel="stylesheet" href="/css/floating-button.css">
     <script src="/js/home.js"></script>
-    <style>
-        .post-content-preview {
-            color: #ccc;
-            margin: 10px 0;
-            font-size: 0.9em;
-            line-height: 1.5;
-            max-height: 100px;
-            overflow: hidden;
-            position: relative;
-        }
-
-        .post-content-preview::after {
-            content: '';
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            width: 100%;
-            height: 50px;
-            background: linear-gradient(transparent, #222);
-            pointer-events: none;
-        }
-    </style>
 </head>
 <body>
     <div class="container">
@@ -38,7 +16,7 @@
                 <li><a href="#">Settings</a></li>
             </ul>
         </nav>                  <!-------------NAVBAR ENDS----------->
-        <button id="navbar-toggle" class="navbar-toggle">◀</button>
+        <button id="navbar-toggle" class="navbar-toggle">≡</button>
         <div class="content">
             <header class="header">
                 <div class="page-name">NTee213</div>
@@ -51,11 +29,9 @@
                     <% if (posts && posts.length > 0) { %>
                         <% posts.forEach(post => { %>
                             <article class="post-preview">
-                                <h3><%= post.title %></h3>
+                                <h3><%- post.title %></h3>
                                 <div class="post-content-preview">
-                                    <%= post.content.length > 200 ? 
-                                        post.content.replace(/[#*`]/g, '').substring(0, 200) + '...' : 
-                                        post.content.replace(/[#*`]/g, '') %>
+                                    <%- post.content %>
                                 </div>
                                 <span class="post-date"><%= new Date(post.created_at).toLocaleDateString() %></span>
                                 <a href="/post/<%= post.id %>" class="view-post">View Post</a>
@@ -84,7 +60,24 @@
                 </form>
             </div>
         </div>
-        
     </div>
+    
+    <!-- Add highlight.js and marked scripts -->
+    <script src="/js/lib/highlight.min.js"></script>
+    <script src="/js/lib/marked.min.js"></script>
+    <script>
+        // Initialize highlight.js with specific languages
+        hljs.configure({
+            languages: ['javascript', 'python', 'bash', 'html', 'css', 'sql', 'sh', 'json', 'yaml', 'markdown', 'toml', 'c', 'cpp', 'java', 'php', 'ruby', 'swift', 'kotlin', 'go', 'rust', 'scala', 'haskell', 'erlang', 'elixir', 'dart', 'typescript'],
+            cssSelector: 'pre code'
+        });
+
+        document.addEventListener('DOMContentLoaded', () => {
+            // Apply highlighting to all code blocks
+            document.querySelectorAll('pre code').forEach((block) => {
+                hljs.highlightElement(block);
+            });
+        });
+    </script>
 </body>
 </html>

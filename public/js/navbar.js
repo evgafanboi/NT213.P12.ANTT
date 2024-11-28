@@ -10,6 +10,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const isCollapsed = localStorage.getItem('navbarCollapsed') === 'true';
     if (isCollapsed) {
         navbar.classList.add('collapsed');
-        toggleButton.textContent = '▶';
+        toggleButton.textContent = '≡';
     }
 }); 

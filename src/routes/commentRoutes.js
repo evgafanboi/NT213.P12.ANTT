@@ -2,6 +2,8 @@ const express = require('express');
 const router = express.Router();
 const { body, validationResult } = require('express-validator');
 const db = require('../db/database');
+const { renderAndSanitizeMarkdown } = require('../utils/markdown');
+const rateLimit = require('express-rate-limit');
 
 // Middleware to check authentication
 const checkAuth = (req, res, next) => {
@@ -11,10 +13,25 @@ const checkAuth = (req, res, next) => {
   next();
 };
 
+const WINDOWMS = 900000; // 15 minutes in milliseconds
+
+const rateLimiter = rateLimit({
+  windowMs: WINDOWMS, // 15 minutes
+  max: 100 // limit each IP to 100 requests per windowMs
+});
+
+const strictRateLimiter = rateLimit({
+  windowMs: WINDOWMS, // 15 minutes
+  max: 50, // limit each IP to 50 requests per windowMs
+  message: 'Too many requests, please try again later.',
+  standardHeaders: true, // Return rate limit info in the `RateLimit-*` headers
+  legacyHeaders: false, // Disable the `X-RateLimit-*` headers  
+});
+
 // Create a new comment
-router.post('/', [
+router.post('/', rateLimiter, [
   body('post_id').isInt(),
-  body('content').isLength({ min: 1 }).trim().escape(),
+  body('content').isLength({ min: 1 }).trim(),
 ], checkAuth, async (req, res) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
@@ -25,7 +42,7 @@ router.post('/', [
 
   try {
     const result = await db.run(
-      'INSERT INTO comments (user_id, post_id, content) VALUES (?, ?, ?)',
+      'INSERT INTO comments (email, post_id, content) VALUES (?, ?, ?)',
       [req.session.userId, post_id, content]
     );
     res.status(201).json({ id: result.id, message: 'Comment created successfully' });
@@ -35,11 +52,30 @@ router.post('/', [
   }
 });
 
-// Get comments for a specific post
-router.get('/post/:postId', async (req, res) => {
+// Get comments for a specific post with pagination
+router.get('/post/:postId', rateLimiter, async (req, res) => {
+  const limit = parseInt(req.query.limit) || 5;
+  const offset = parseInt(req.query.offset) || 0;
+
   try {
-    const comments = await db.all('SELECT * FROM comments WHERE post_id = ? ORDER BY created_at DESC', [req.params.postId]);
-    res.json(comments);
+    const comments = await db.all(`
+      SELECT 
+        c.*,
+        u.username as author_name
+      FROM comments c
+      LEFT JOIN users u ON c.email = u.email
+      WHERE c.post_id = ? 
+      ORDER BY c.created_at DESC
+      LIMIT ? OFFSET ?
+    `, [req.params.postId, limit, offset]);
+    
+    // Render markdown for each comment
+    const renderedComments = comments.map(comment => ({
+      ...comment,
+      content: renderAndSanitizeMarkdown(comment.content)
+    }));
+    
+    res.json(renderedComments);
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: 'Server error' });
@@ -47,8 +83,8 @@ router.get('/post/:postId', async (req, res) => {
 });
 
 // Update a comment
-router.put('/:id', [
-  body('content').isLength({ min: 1 }).trim().escape(),
+router.put('/:id', strictRateLimiter, [
+  body('content').isLength({ min: 1 }).trim(),
 ], checkAuth, async (req, res) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
@@ -62,7 +98,7 @@ router.put('/:id', [
     if (!comment) {
       return res.status(404).json({ message: 'Comment not found' });
     }
-    if (comment.user_id !== req.session.userId) {
+    if (comment.email !== req.session.userId) {
       return res.status(403).json({ message: 'Forbidden' });
     }
 
@@ -75,13 +111,13 @@ router.put('/:id', [
 });
 
 // Delete a comment
-router.delete('/:id', checkAuth, async (req, res) => {
+router.delete('/:id', checkAuth, strictRateLimiter, async (req, res) => {
   try {
     const comment = await db.get('SELECT * FROM comments WHERE id = ?', [req.params.id]);
     if (!comment) {
       return res.status(404).json({ message: 'Comment not found' });
     }
-    if (comment.user_id !== req.session.userId) {
+    if (comment.email !== req.session.userId) {
       return res.status(403).json({ message: 'Forbidden' });
     }
 
@@ -91,6 +127,35 @@ router.delete('/:id', checkAuth, async (req, res) => {
     console.error(error);
     res.status(500).json({ message: 'Server error' });
   }
+});
+
+// Get comments by user, raw
+router.get('/user', checkAuth, async (req, res) => {
+    try {
+        const comments = await db.all(`
+            SELECT 
+                c.*,
+                p.title as post_title,
+                u.username as author_name
+            FROM comments c
+            LEFT JOIN posts p ON c.post_id = p.id
+            LEFT JOIN users u ON c.email = u.email
+            WHERE c.email = ?
+            ORDER BY c.created_at DESC
+        `, [req.session.userId]);
+        
+        // Send both raw and rendered content
+        const commentsWithBoth = comments.map(comment => ({
+            ...comment,
+            raw_content: comment.content, // Keep original markdown
+            content: renderAndSanitizeMarkdown(comment.content) // Add rendered version
+        }));
+        
+        res.json(commentsWithBoth);
+    } catch (error) {
+        console.error('Error fetching user comments:', error);
+        res.status(500).json({ message: 'Server error' });
+    }
 });
 
 module.exports = router;
