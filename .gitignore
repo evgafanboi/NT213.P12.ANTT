@@ -1,4 +1,6 @@
 node_modules/
-package*
 .env
+package-lock.json
+package.json
 ssl/*
+data/*
