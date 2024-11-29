@@ -15,22 +15,23 @@ const VALID_DURATION = 604800000; // 1 WEEK in milliseconds
 
 const strictRateLimiter = rateLimit({
   windowMs: 900000, // 15 minutes
-  max: 10 // limit each IP to 5 login attempts per windowMs
+  max: 5,
+  skipSuccessfulRequests: true
 });
 
 // Less strict limit for frequent endpoints (/profile)
 const rateLimiter = rateLimit({
-  windowMs: 600000, // 10 minutes
-  max: 50 // limit each IP to 50 requests per windowMs
+  windowMs: 900000, // 15 minutes
+  max: 30 // limit each IP to 30 requests per windowMs
 });
 
 // Check if the code is expired
 function isCodeExpired(timestamp) {
-  const expirationTime = 5 * 60 * 1000; // 5 minutes in milliseconds
+  const expirationTime = 180000; // 3 minutes in milliseconds
   return Date.now() - timestamp > expirationTime;
 }
 
-// Custom password validator
+// Custom password validator: at least 9 characters, 1 uppercase, 1 lowercase, 1 number, 1 special character
 const passwordValidator = (value) => {
   const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>/?]).{9,}$/;
   if (!passwordRegex.test(value)) {
@@ -130,7 +131,20 @@ router.post('/verify', strictRateLimiter, [
       verificationCodes.delete(email);
       req.session.userId = user_email; // Store email as userId
       res.status(200).json({ message: 'Logged in successfully' });
-    } else {
+    }
+
+    // =========== for profile updates ===========
+    else if (storedData.type === 'profile-update') {
+      if (storedData.newPassword) {
+        const hashedPassword = await bcrypt.hash(storedData.newPassword, 10);
+        await db.run('UPDATE users SET password = ? WHERE email = ?', 
+          [hashedPassword, email]);
+      }
+      verificationCodes.delete(email);
+      return res.json({ success: true, message: 'Profile updated successfully' });
+    }
+
+    else {
       return res.status(400).json({ message: 'Invalid verification type' });
     }
   } catch (error) {
@@ -211,7 +225,6 @@ router.post('/logout', strictRateLimiter, (req, res) => {
   });
 });
 
-// API endpoint for profile data (used by fetchUserProfile())
 router.get('/profile', rateLimiter, async (req, res) => {
     if (!req.session.userId) {
         return res.status(401).json({ message: 'Unauthorized' });
@@ -226,7 +239,7 @@ router.get('/profile', rateLimiter, async (req, res) => {
     }
 });
   
-// profile page render endpoint
+// endpoint dedicated for profile's posts, return both raw and markdown-rendered
 router.get('/profile/page', rateLimiter, async (req, res) => {
     if (!req.session.userId) {
         return res.redirect('/login');
@@ -276,36 +289,57 @@ router.get('/profile/page', rateLimiter, async (req, res) => {
     }
 });
 
-// Update user profile, not being used currently
+// Update user password
 router.put('/profile', strictRateLimiter, [
-  body('email').optional().isEmail().normalizeEmail(),
-  body('password').optional().custom(passwordValidator),
+    body('currentPassword').exists(),
+    body('newPassword').custom(passwordValidator),
 ], async (req, res) => {
-  if (!req.session.userId) {
-    return res.status(401).json({ message: 'Unauthorized' });
-  }
+    if (!req.session.userId) {
+        return res.status(401).json({ message: 'Unauthorized' });
+    }
 
-  const errors = validationResult(req);
-  if (!errors.isEmpty()) {
-    return res.status(400).json({ errors: errors.array() });
-  }
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+        return res.status(400).json({ 
+            message: 'Validation failed', 
+            errors: errors.array() 
+        });
+    }
 
-  const { email, password } = req.body;
-  const updates = {};
+    try {
+        const { currentPassword, newPassword } = req.body;
+        
+        // Get user
+        const user = await db.get('SELECT * FROM users WHERE email = ?', [req.session.userId]);
+        
+        // Verify current password
+        const isMatch = await bcrypt.compare(currentPassword, user.password);
+        if (!isMatch) {
+            return res.status(400).json({ message: 'Current password is incorrect' });
+        }
 
-  if (email) updates.email = email;
-  if (password) updates.password = await bcrypt.hash(password, 10);
+        // For password change, send verification code
+        if (newPassword) {
+            const verificationCode = generateVerificationCode();
+            verificationCodes.set(req.session.userId, {
+                code: verificationCode,
+                type: 'profile-update',
+                newPassword,
+                timestamp: Date.now()
+            });
 
-  try {
-    await db.run(
-      'UPDATE users SET ' + Object.keys(updates).map(key => `${key} = ?`).join(', ') + ' WHERE email = ?',
-      [...Object.values(updates), req.session.userId]
-    );
-    res.json({ message: 'Profile updated successfully' });
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: 'Server error' });
-  }
+            await sendVerificationEmail(req.session.userId, verificationCode);
+            return res.json({ 
+                message: 'Verification code sent to your email',
+                require2FA: true 
+            });
+        }
+
+        res.json({ message: 'No updates provided' });
+    } catch (error) {
+        console.error('Password update error:', error);
+        res.status(500).json({ message: 'Server error' });
+    }
 });
 
 // helper function, probably not needed but left just in case

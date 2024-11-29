@@ -63,6 +63,13 @@
     <script src="/js/lib/highlight.min.js"></script>
     <script src="/js/lib/marked.min.js"></script>
     <script>
+        // Add this at the top of your script section
+        async function getCsrfToken() {
+            const response = await fetch('/csrf-token');
+            const { token } = await response.json();
+            return token;
+        }
+
         // Initialize highlight.js with specific languages
         hljs.configure({
             languages: ['javascript', 'python', 'bash', 'html', 'css', 'sql', 'sh', 'json', 'yaml', 'markdown', 'toml', 'c', 'cpp', 'java', 'php', 'ruby', 'swift', 'kotlin', 'go', 'rust', 'scala', 'haskell', 'erlang', 'elixir', 'dart', 'typescript'],
@@ -151,7 +158,7 @@
 
                         if (comments.length === limit) {
                             const readMoreButton = document.createElement('button');
-                            readMoreButton.textContent = 'Read more';
+                            readMoreButton.textContent = 'Read more ▼';
                             readMoreButton.classList.add('read-more');
                             readMoreButton.addEventListener('click', () => {
                                 offset += limit;
@@ -183,7 +190,8 @@
                         const response = await fetch('/api/comments', {
                             method: 'POST',
                             headers: {
-                                'Content-Type': 'application/json'
+                                'Content-Type': 'application/json',
+                                'x-csrf-token': await getCsrfToken()
                             },
                             body: JSON.stringify({
                                 post_id: postId,

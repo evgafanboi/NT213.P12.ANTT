@@ -17,19 +17,19 @@ const WINDOWMS = 900000; // 15 minutes in milliseconds
 
 const rateLimiter = rateLimit({
   windowMs: WINDOWMS, // 15 minutes
-  max: 100 // limit each IP to 100 requests per windowMs
+  max: 30 // limit each IP to 30 requests per windowMs
 });
 
 const strictRateLimiter = rateLimit({
   windowMs: WINDOWMS, // 15 minutes
-  max: 50, // limit each IP to 50 requests per windowMs
+  max: 10, // limit each IP to 10 requests per windowMs
   message: 'Too many requests, please try again later.',
   standardHeaders: true, // Return rate limit info in the `RateLimit-*` headers
   legacyHeaders: false, // Disable the `X-RateLimit-*` headers  
 });
 
 // Create a new comment
-router.post('/', rateLimiter, [
+router.post('/', strictRateLimiter, [
   body('post_id').isInt(),
   body('content').isLength({ min: 1 }).trim(),
 ], checkAuth, async (req, res) => {
@@ -111,7 +111,7 @@ router.put('/:id', strictRateLimiter, [
 });
 
 // Delete a comment
-router.delete('/:id', checkAuth, strictRateLimiter, async (req, res) => {
+router.delete('/:id', checkAuth, rateLimiter, async (req, res) => {
   try {
     const comment = await db.get('SELECT * FROM comments WHERE id = ?', [req.params.id]);
     if (!comment) {
@@ -130,7 +130,7 @@ router.delete('/:id', checkAuth, strictRateLimiter, async (req, res) => {
 });
 
 // Get comments by user, raw
-router.get('/user', checkAuth, async (req, res) => {
+router.get('/user', rateLimiter, checkAuth, async (req, res) => {
     try {
         const comments = await db.all(`
             SELECT 

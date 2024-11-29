@@ -10,15 +10,18 @@ const rateLimit = require('express-rate-limit');
 const path = require('path');
 const { renderAndSanitizeMarkdown } = require(path.join(__dirname, '..', 'utils', 'markdown'));
 
-const WINDOWMS = 900000; // 15 minutes in milliseconds
+const homeRateLimiter = rateLimit({
+  windowMs: 600000, // 10 minutes
+  max: 50 // limit each IP to 50 requests per windowMs
+});
 
 const rateLimiter = rateLimit({
-  windowMs: WINDOWMS, // 15 minutes
-  max: 100 // limit each IP to 100 requests per windowMs
+  windowMs: 900000, // 15 minutes
+  max: 30 // limit each IP to 30 requests per windowMs
 });
 
 const strictRateLimiter = rateLimit({
-  windowMs: WINDOWMS, // 15 minutes
+  windowMs: 900000, // 15 minutes
   max: 10, // limit each IP to 10 requests per windowMs
   message: 'Too many requests, please try again later.',
   standardHeaders: true, // Return rate limit info in the `RateLimit-*` headers
@@ -58,7 +61,7 @@ router.post('/', strictRateLimiter, [
   } catch (error) {
     console.error('Error creating post:', error);
     res.status(500).json({ 
-      message: 'Server error',
+      message: 'Unexpected error',
       details: error.message // Include error details
     });
   }
@@ -71,11 +74,11 @@ router.get('/count', rateLimiter, async (req, res) => {
         res.json({ total: result.total });
     } catch (error) {
         console.error(error);
-        res.status(500).json({ message: 'Server error' });
+        res.status(500).json({ message: 'Unexpected error' });
     }
 });
 
-// Modify the get all posts route to support pagination
+
 router.get('/', rateLimiter, async (req, res) => {
     try {
         const page = parseInt(req.query.page) || 1;
@@ -101,7 +104,7 @@ router.get('/', rateLimiter, async (req, res) => {
         res.json(posts);
     } catch (error) {
         console.error('Error fetching posts:', error);
-        res.status(500).json({ message: 'Server error' });
+        res.status(500).json({ message: 'Unexpected error' });
     }
 });
 
@@ -138,7 +141,7 @@ router.get('/:id/page', rateLimiter, async (req, res) => {
     } catch (error) {
         console.error('Error in post route:', error);
         res.status(500).render('error', {
-            title: '500 - Server Error',
+            title: 'Error',
             message: 'Failed to load post',
             cssPath: '/css/home.css'
         });
@@ -150,34 +153,32 @@ router.put('/:id', strictRateLimiter, [
   body('title').optional().isLength({ min: 1 }).trim(),
   body('content').optional().isLength({ min: 1 }).trim(),
 ], checkAuth, async (req, res) => {
-  const errors = validationResult(req);
-  if (!errors.isEmpty()) {
-    return res.status(400).json({ errors: errors.array() });
-  }
-
-  const { title, content } = req.body;
-  const updates = {};
-
-  if (title) updates.title = title;
-  if (content) updates.content = content;
-
   try {
-    const post = await db.get('SELECT * FROM posts WHERE id = ?', [req.params.id]);
+    const { title, content } = req.body;
+    
+    // First verify ownership
+    const post = await db.get('SELECT * FROM posts WHERE id = ? AND email = ?', 
+      [req.params.id, req.session.userId]);
+    
     if (!post) {
       return res.status(404).json({ message: 'Post not found' });
     }
-    if (post.email !== req.session.userId) {
-      return res.status(403).json({ message: 'Forbidden' });
-    }
 
-    await db.run(
-      'UPDATE posts SET ' + Object.keys(updates).map(key => `${key} = ?`).join(', ') + ' WHERE id = ?',
-      [...Object.values(updates), req.params.id]
+    // Explicit update query
+    await db.run(`
+      UPDATE posts 
+      SET 
+        title = COALESCE(?, title),
+        content = COALESCE(?, content),
+        updated_at = CURRENT_TIMESTAMP
+      WHERE id = ? AND email = ?`,
+      [title, content, req.params.id, req.session.userId]
     );
+
     res.json({ message: 'Post updated successfully' });
   } catch (error) {
     console.error(error);
-    res.status(500).json({ message: 'Server error' });
+    res.status(500).json({ message: 'Unexpected error' });
   }
 });
 
@@ -197,12 +198,12 @@ router.delete('/:id', rateLimiter, checkAuth, async (req, res) => {
         res.json({ message: 'Post deleted successfully' });
     } catch (error) {
         console.error(error);
-        res.status(500).json({ message: 'Server error' });
+        res.status(500).json({ message: 'Unexpected error' });
     }
 });
 
 // Get posts review and render home page
-router.get('/home', rateLimiter, async (req, res) => {
+router.get('/home', homeRateLimiter, async (req, res) => {
     try {
         const posts = await db.all(`
             SELECT 
@@ -233,7 +234,7 @@ router.get('/home', rateLimiter, async (req, res) => {
     } catch (error) {
         console.error('Error fetching posts:', error);
         res.status(500).render('error', {
-            title: '500 - Server Error',
+            title: 'Error',
             message: 'Failed to load posts',
             cssPath: '/css/home.css'
         });
@@ -271,7 +272,7 @@ router.get('/:id/raw', rateLimiter, checkAuth, async (req, res) => {
 
     } catch (error) {
         console.error('Error fetching raw post:', error);
-        res.status(500).json({ message: 'Server error' });
+        res.status(500).json({ message: 'Unexpected error' });
     }
 });
 

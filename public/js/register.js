@@ -1,6 +1,14 @@
+const { get } = require("../../src/db/database");
+
 const registerForm = document.getElementById('registerForm');
 const verificationForm = document.getElementById('verificationForm');
 let userEmail = '';
+
+async function getCsrfToken() {
+    const response = await fetch('/csrf-token');
+    const { token } = await response.json();
+    return token;
+}
 
 // Function to make sure the email input is in the standard email format
 function validateEmail(email) {
@@ -94,7 +102,7 @@ document.addEventListener('DOMContentLoaded', () => {
         try {
             const response = await fetch('/auth/register/send-code', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: { 'Content-Type': 'application/json', 'x-csrf-token': await getCsrfToken() },
                 body: JSON.stringify(data)
             });
 
@@ -128,7 +136,7 @@ document.addEventListener('DOMContentLoaded', () => {
         try {
             const response = await fetch('/auth/verify', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: { 'Content-Type': 'application/json', 'x-csrf-token': await getCsrfToken() },
                 body: JSON.stringify(data)
             });
 

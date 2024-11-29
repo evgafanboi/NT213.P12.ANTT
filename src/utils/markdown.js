@@ -28,16 +28,17 @@ marked.setOptions({
 // Configure DOMPurify HTML elements whitelist
 const purifyOptions = {
     ALLOWED_TAGS: [
-        'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'blockquote', 'p', 'a', 'ul', 'ol',
-        'nl', 'li', 'b', 'i', 'strong', 'em', 'strike', 'code', 'hr', 'br', 'div',
-        'table', 'thead', 'caption', 'tbody', 'tr', 'th', 'td', 'pre', 'span'
+        'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'p', 'ul', 'ol', 'li', 'code', 'pre', 'strong', 'em', 'br', 'span', 'table', 'div', 'a', 'blockquote'
     ],
     ALLOWED_ATTR: ['href', 'class', 'style'],
     ALLOWED_CLASSES: {
-        'pre': ['*'],
-        'code': ['*'],
-        'span': ['*'] // Allow syntax highlighting classes
-    }
+        'pre': ['language-*'],
+        'code': ['language-*'],
+        'span': ['hljs-*']
+    },
+    FORBID_TAGS: ['style', 'script'],
+    FORBID_ATTR: ['style', 'onerror', 'onclick'],
+    ALLOW_DATA_ATTR: false
 };
 
 function renderAndSanitizeMarkdown(content) {

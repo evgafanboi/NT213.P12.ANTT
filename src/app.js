@@ -15,9 +15,12 @@ const rateLimit = require('express-rate-limit');
 const timeout = require('connect-timeout');
 const ejs = require('ejs');
 const db = require('./db/database');
+const { doubleCsrf } = require('csrf-csrf');
+const cookieParser = require('cookie-parser');
 
 const app = express();
 
+app.use(cookieParser());
 
 // Middleware setup
 app.use(helmet({
@@ -51,30 +54,89 @@ app.use(session({
   secret: process.env.SESSION_SECRET,
   resave: false,
   saveUninitialized: false,
+  rolling: true,  // Reset cookie after set time below
+  renewAfter: 3600000, // 1 hour in milliseconds
   cookie: { 
     secure: true,
     httpOnly: true,
     sameSite: 'strict',
-    maxAge: 24 * 60 * 60 * 1000 // 24 hours
+    maxAge: 86400000 // 24 hours
   },
   name: 'sessionId'
 }));
+
+// CSRF Configuration
+const csrfProtection = doubleCsrf({
+    getSecret: () => process.env.SESSION_SECRET,
+    cookieName: "x-csrf-token",
+    cookieOptions: {
+        httpOnly: true,
+        sameSite: "lax",
+        secure: process.env.NODE_ENV === 'production',
+        path: '/'
+    },
+    size: 64,
+    getTokenFromRequest: (req) => req.headers["x-csrf-token"],
+});
+
+const { generateToken, doubleCsrfProtection } = csrfProtection;
+
+// Middleware to ensure CSRF cookie is set
+app.use((req, res, next) => {
+    // Only set token if it doesn't exist
+    if (!req.cookies['x-csrf-token']) {
+        generateToken(req, res);
+    }
+    next();
+});
+
+// Then add the CSRF protection
+app.use(doubleCsrfProtection);
+
+const csrfLimiter = rateLimit({
+    windowMs: 600000, // 15 minutes
+    max: 100 // limit each IP to 100 requests per windowMs
+});
+
+// CSRF token endpoint
+app.get('/csrf-token', csrfLimiter, (req, res) => {
+    try {
+        const token = generateToken(req, res);
+        res.json({ token });
+    } catch (error) {
+        console.error('CSRF Token Generation Error:', error);
+        res.status(500).json({ 
+            message: 'Failed to generate CSRF token',
+            error: process.env.NODE_ENV === 'development' ? error.message : undefined
+        });
+    }
+});
+
+// Error handling middleware
+app.use((err, req, res, next) => {
+    console.error(err);
+    if (err.code === 'CSRF_INVALID') {
+        return res.status(403).json({
+            message: 'Invalid CSRF token. Please refresh the page.'
+        });
+    }
+    next(err);
+});
 
 // Route handlers
 app.use('/auth', authRoutes);
 app.use('/api/posts', postRoutes);
 app.use('/api/comments', commentRoutes);
 
-// Add rate limiting for all routes
-const WINDOWMS = 600000; // 10 minutes in milliseconds
-
-// very easy limit for all public routes
+// Rate limiting
+// very high limit for all public routes
 const limiter = rateLimit({
   windowMs: 600000, // 10 minutes
   max: 50 // limit each IP to 50 requests per windowMs
 });
-app.use(limiter);
 
+app.use(limiter);
+app.use('/csrf-token', csrfLimiter);
 
 // Set EJS as the view engine
 app.set('view engine', 'ejs');
@@ -115,12 +177,12 @@ app.use((req, res) => {
 
 // Error handler
 app.use((err, req, res, next) => {
-    console.error(err.stack);
-    res.status(500).render('error', {
-        title: '500 - Server Error',
-        message: 'Internal server error',
-        cssPath: '/css/home.css'
-    });
+    if (err.code === 'CSRF_INVALID') {
+        return res.status(403).json({
+            message: 'Form has expired. Please refresh the page.'
+        });
+    }
+    next(err);
 });
 
 // SSL/TLS configuration

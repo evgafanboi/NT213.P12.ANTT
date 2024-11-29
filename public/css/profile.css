@@ -138,7 +138,7 @@
 
 /* Edit modal styles */
 .modal {
-    display: none; /* Hidden by default */
+    display: none;
     position: fixed;
     z-index: 1000;
     left: 0;
@@ -150,24 +150,21 @@
 }
 
 .modal-content {
-    background-color: #222;
-    margin: 10% auto;
+    background-color: #333;
+    margin: 15% auto;
     padding: 20px;
-    border: 1px solid #ffdd00;
-    border-radius: 8px;
+    border: 1px solid #444;
+    border-radius: 5px;
     width: 80%;
-    max-width: 600px;
-    position: relative;
+    max-width: 500px;
 }
 
-/* Close button */
 .close {
-    color: #ffdd00;
+    color: #aaa;
     float: right;
     font-size: 28px;
     font-weight: bold;
     cursor: pointer;
-    transition: color 0.3s ease;
 }
 
 .close:hover {
@@ -384,4 +381,46 @@
 .post-content-preview ol {
     padding-left: 1.5em;
     margin-bottom: 0.5em;
+}
+
+.edit-password-btn {
+    background: none;
+    border: none;
+    color: #ffdd00;
+    cursor: pointer;
+    padding: 5px 10px;
+    margin-left: 10px;
+}
+
+.password-requirements {
+    font-size: 0.9em;
+    color: #888;
+    margin: 10px 0;
+}
+
+#change-password-form input,
+#verify-password-form input {
+    width: 100%;
+    padding: 8px;
+    margin: 5px 0;
+    border: 1px solid #444;
+    border-radius: 4px;
+    background-color: #333;
+    color: #fff;
+}
+
+#change-password-form button[type="submit"],
+#verify-password-form button[type="submit"] {
+    background-color: #ffdd00;
+    color: #1a1a1a;
+    border: none;
+    padding: 5px 10px;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+#change-password-form button[type="submit"]:hover,
+#verify-password-form button[type="submit"]:hover {
+    background-color: #fff;
+    transition: 0.3s ease;
 }

@@ -1,3 +1,17 @@
+async function getCsrfToken() {
+    try {
+        const response = await fetch('/csrf-token');
+        if (!response.ok) {
+            throw new Error('Failed to get CSRF token');
+        }
+        const data = await response.json();
+        return data.token;
+    } catch (error) {
+        console.error('Error getting CSRF token:', error);
+        throw error;
+    }
+}
+
 const form = document.getElementById('loginForm');
 const twoFAForm = document.getElementById('twoFAForm');
 let userEmail = '';
@@ -14,10 +28,16 @@ form.addEventListener('submit', async (e) => {
     };
 
     try {
+        const csrfToken = await getCsrfToken();
+        
         const response = await fetch('/auth/login', {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(data)
+            headers: { 
+                'Content-Type': 'application/json',
+                'x-csrf-token': csrfToken
+            },
+            body: JSON.stringify(data),
+            credentials: 'include'
         });
 
         const result = await response.json();
@@ -27,8 +47,6 @@ form.addEventListener('submit', async (e) => {
             userEmail = result.email;
             startExpirationTimer();
         } else if (result.success) {
-            alert('Logged in successfully');
-            // Redirect to profile page or dashboard
             window.location.href = '/home';
         } else {
             alert(result.message || 'An error occurred during login');
@@ -53,16 +71,20 @@ twoFAForm.addEventListener('submit', async (e) => {
     };
 
     try {
+        const csrfToken = await getCsrfToken();
+        
         const response = await fetch('/auth/verify', {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(data)
+            headers: { 
+                'Content-Type': 'application/json',
+                'x-csrf-token': csrfToken
+            },
+            body: JSON.stringify(data),
+            credentials: 'include'
         });
 
         const result = await response.json();
         if (result.success) {
-            //alert('Logged in successfully');  // annoying therefore deprecated
-            // Redirect to profile page or dashboard
             window.location.href = '/home';
         } else {
             alert(result.message || 'Invalid verification code');

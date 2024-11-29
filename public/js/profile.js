@@ -1,4 +1,25 @@
-document.addEventListener('DOMContentLoaded', () => {
+// Add this at the top level to store the user's email
+let userEmail;
+
+// Fetch user email when the page loads
+async function initializeUserData() {
+    try {
+        const response = await fetch('/auth/profile');
+        const userData = await response.json();
+        userEmail = userData.email; // Store email globally
+    } catch (error) {
+        console.error('Failed to fetch user data:', error);
+    }
+}
+
+async function getCsrfToken() {
+    const response = await fetch('/csrf-token');
+    const { token } = await response.json();
+    return token;
+}
+
+document.addEventListener('DOMContentLoaded', async () => {
+    await initializeUserData();
     const editBtn = document.querySelector('.edit-username-btn');
     const usernameDisplay = document.getElementById('username-display');
     const usernameContainer = document.querySelector('.username-container');
@@ -49,10 +70,12 @@ document.addEventListener('DOMContentLoaded', () => {
             }
 
             try {
+                const csrfToken = await getCsrfToken();
                 const response = await fetch('/auth/update-username', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
+                        'x-csrf-token': csrfToken
                     },
                     body: JSON.stringify({ username: newUsername }),
                     credentials: 'include'
@@ -168,10 +191,12 @@ document.addEventListener('DOMContentLoaded', () => {
         const postId = editPostId.value;
         
         try {
+            const csrfToken = await getCsrfToken();
             const response = await fetch(`/api/posts/${postId}`, {
                 method: 'PUT',
                 headers: {
-                    'Content-Type': 'application/json'
+                    'Content-Type': 'application/json',
+                    'x-csrf-token': csrfToken
                 },
                 body: JSON.stringify({
                     title: editTitle.value,
@@ -232,8 +257,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
 
                 try {
+                    const csrfToken = await getCsrfToken();
                     const response = await fetch(`/api/comments/${commentId}`, {
                         method: 'DELETE',
+                        headers: {
+                            'x-csrf-token': csrfToken
+                        },
                         credentials: 'include'
                     });
                     
@@ -292,10 +321,12 @@ document.addEventListener('DOMContentLoaded', () => {
             const commentId = editCommentId.value;
             
             try {
+                const csrfToken = await getCsrfToken();
                 const response = await fetch(`/api/comments/${commentId}`, {
                     method: 'PUT',
                     headers: {
-                        'Content-Type': 'application/json'
+                        'Content-Type': 'application/json',
+                        'x-csrf-token': csrfToken
                     },
                     body: JSON.stringify({
                         content: editCommentContent.value
@@ -383,4 +414,112 @@ document.addEventListener('DOMContentLoaded', () => {
     if (document.querySelector('.tab-btn[data-tab="comments"]').classList.contains('active')) {
         loadUserComments();
     }
+
+    // Password change form submission
+    const changePasswordModal = document.getElementById('change-password-modal');
+    const changePasswordForm = document.getElementById('change-password-form');
+    const verifyPasswordForm = document.getElementById('verify-password-form');
+
+    // Add button click handler to show modal
+    const editPasswordBtn = document.querySelector('.edit-password-btn');
+    editPasswordBtn.addEventListener('click', () => {
+        changePasswordModal.style.display = 'block';
+        changePasswordForm.style.display = 'block';
+        verifyPasswordForm.style.display = 'none';
+    });
+
+    // Add close button functionality
+    const closeBtn = changePasswordModal.querySelector('.close');
+    if (closeBtn) {
+        closeBtn.addEventListener('click', () => {
+            changePasswordModal.style.display = 'none';
+            // Reset forms
+            changePasswordForm.reset();
+            changePasswordForm.style.display = 'block';
+            verifyPasswordForm.style.display = 'none';
+        });
+    }
+
+    // Password change form submission
+    changePasswordForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const currentPassword = document.getElementById('current-password').value;
+        const newPassword = document.getElementById('new-password').value;
+        const confirmPassword = document.getElementById('confirm-password').value;
+
+        if (newPassword !== confirmPassword) {
+            alert('New passwords do not match');
+            return;
+        }
+
+        try {
+            const response = await fetch('/auth/profile', {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'x-csrf-token': await getCsrfToken()
+                },
+                body: JSON.stringify({ 
+                    currentPassword, 
+                    newPassword 
+                }),
+                credentials: 'include'
+            });
+
+            const data = await response.json();
+
+            if (response.ok && data.require2FA) {
+                changePasswordForm.style.display = 'none';
+                verifyPasswordForm.style.display = 'block';
+            } else if (response.ok) {
+                alert('Profile updated successfully');
+                changePasswordModal.style.display = 'none';
+                changePasswordForm.reset();
+            } else {
+                alert(data.message || 'Failed to update profile');
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            alert('Failed to process request');
+        }
+    });
+
+    // Add verification form handler
+    verifyPasswordForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const code = document.getElementById('verification-code').value;
+
+        try {
+            const response = await fetch('/auth/verify', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'x-csrf-token': await getCsrfToken()
+                },
+                body: JSON.stringify({
+                    email: userEmail,
+                    code: code,
+                    type: 'profile-update'
+                }),
+                credentials: 'include'
+            });
+
+            const data = await response.json();
+
+            if (response.ok) {
+                alert('Password changed successfully');
+                changePasswordModal.style.display = 'none';
+                // Reset forms
+                changePasswordForm.reset();
+                verifyPasswordForm.reset();
+                changePasswordForm.style.display = 'block';
+                verifyPasswordForm.style.display = 'none';
+            } else {
+                alert(data.message || 'Verification failed');
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            alert('Failed to verify code');
+        }
+    });
 }); 

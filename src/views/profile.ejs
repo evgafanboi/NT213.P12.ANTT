@@ -27,6 +27,11 @@
                     </div>
                     <div class="user-info-item"><p class="user-info-label">Email: </p><p><%= user.email %></p></div>
                     <div class="user-info-item"><p class="user-info-label">Member since: </p><p><%= new Date(user.created_at).toLocaleDateString() %></p></div>
+                    <div class="user-info-item">
+                        <p class="user-info-label">Password: </p>
+                        <p>••••••••</p>
+                        <button class="edit-password-btn" title="Change password">✏️</button>
+                    </div>
                 </div>
                 
                 <div class="content-tabs">
@@ -106,6 +111,27 @@
                     </div>  
                 </div>
                 
+                <!-- CHANGE PASSWORD MODAL -->
+                <div id="change-password-modal" class="modal">
+                    <div class="modal-content">
+                        <span class="close">&times;</span>
+                        <h2>Change Password</h2>
+                        <form id="change-password-form">
+                            <input type="password" id="current-password" placeholder="Current Password" required>
+                            <input type="password" id="new-password" placeholder="New Password" required>
+                            <input type="password" id="confirm-password" placeholder="Confirm New Password" required>
+                            <div class="password-requirements">
+                                Password must be at least 9 characters long and include uppercase, lowercase, numbers, and special characters.
+                            </div>
+                            <button type="submit">Change Password</button>
+                        </form>
+                        <form id="verify-password-form" style="display: none;">
+                            <p>Please enter the verification code sent to your email</p>
+                            <input type="text" id="verification-code" placeholder="6-digit code" maxlength="6" required>
+                            <button type="submit">Verify & Change Password</button>
+                        </form>
+                    </div>
+                </div>
             </div>
         </main>
     </div>

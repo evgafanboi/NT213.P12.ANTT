@@ -1,8 +1,14 @@
+async function getCsrfToken() {
+    const response = await fetch('/csrf-token');
+    const { token } = await response.json();
+    return token;
+}
+
 // Function to fetch user profile data
 async function fetchUserProfile() {
     try {
         const response = await fetch('/auth/profile', {
-            credentials: 'include' // Important for sending cookies
+            credentials: 'include'
         });
         if (response.ok) {
             return await response.json();
@@ -32,7 +38,10 @@ async function checkLoginStatus() {
             try {
                 const response = await fetch('/auth/logout', {
                     method: 'POST',
-                    credentials: 'include'
+                    credentials: 'include',
+                    headers: {
+                        'x-csrf-token': await getCsrfToken()
+                    }
                 });
                 if (response.ok) {
                     window.location.href = '/login';
@@ -96,7 +105,8 @@ async function initializePostButton() {
             const response = await fetch('/api/posts', {
                 method: 'POST',
                 headers: {
-                    'Content-Type': 'application/json'
+                    'Content-Type': 'application/json',
+                    'x-csrf-token': await getCsrfToken()
                 },
                 body: JSON.stringify({ title, content }),
                 credentials: 'include'

@@ -78,6 +78,7 @@ html, body {
     padding: 10px;
 }
 
+
 .username {
     display: flex;
     align-items: center;
@@ -85,8 +86,8 @@ html, body {
 
 /* Override some github-markdown-dark.css styles */
 .markdown-body {
-    background-color: transparent !important;
-    color: #ffdd00 !important;
+    background-color: transparent;
+    color: #ffffff !important;
     overflow-wrap: break-word;
     word-wrap: break-word;
 }
@@ -368,3 +369,17 @@ html, body {
 .markdown-body pre:hover .code-block-header {
     opacity: 1;
 }
+
+.read-more {
+    color: #ffdd00;
+    border: none;
+    background-color: transparent;
+}
+
+.read-more:hover {
+    text-decoration: underline;
+    font-weight: bold;
+    transition: 0.3s ease;
+    cursor: pointer;
+}
+
