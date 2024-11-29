@@ -73,9 +73,11 @@ To get started with this NodeJS based blog website, follow these simple steps:
 
    To install all packages, run the following command:
    ```sh
-   npm install express express-session connect-sqlite3 bcrypt express-validator helmet xss-clean nodemailer dotenv generate-random-username express-rate-limit connect-timeout marked highlight.js dompurify isomorphic-dompurify jsdom github-markdown-css ejs
+   npm install express express-session connect-sqlite3 bcrypt express-validator helmet xss-clean nodemailer dotenv generate-random-username express-rate-limit connect-timeout marked highlight.js dompurify isomorphic-dompurify jsdom github-markdown-css ejs csrf-csrf cookie-parser
    ```
-   > If prompted, run `npm audit fix`
+   <br>
+   
+   > If prompted, run `npm audit fix`. Do **not** run `npm audit fix --force` unless it's a high severity vulnerability. Report to repo owner if you are unsure.
    
    <br>
 For any issues, please refer to the documentation or open an issue in the repository. 
