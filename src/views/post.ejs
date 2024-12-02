@@ -184,9 +184,13 @@
             if (commentForm) {
                 commentForm.addEventListener('submit', async (e) => {
                     e.preventDefault();
-                    const content = document.getElementById('comment-content').value;
-                    
+                    const submitBtn = e.target.querySelector('button[type="submit"]');
+                    submitBtn.disabled = true;
+                    submitBtn.textContent = 'Posting...';
+
                     try {
+                        const content = document.getElementById('comment-content').value;
+                        
                         const response = await fetch('/api/comments', {
                             method: 'POST',
                             headers: {
@@ -212,6 +216,9 @@
                     } catch (error) {
                         console.error('Error posting comment:', error);
                         alert('Failed to post comment');
+                    } finally {
+                        submitBtn.disabled = false;
+                        submitBtn.textContent = 'Post Comment';
                     }
                 });
             }

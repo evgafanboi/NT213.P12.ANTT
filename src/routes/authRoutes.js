@@ -73,7 +73,7 @@ router.post('/register/send-code', strictRateLimiter, [
     res.status(200).json({ message: 'Verification code sent to your email. Valid for 5 minutes.' });
   } catch (error) {
     console.error(error);
-    res.status(500).json({ message: 'Server error' });
+    res.status(500).json({ message: 'Unexpected error' });
   }
 });
 
@@ -122,15 +122,15 @@ router.post('/verify', strictRateLimiter, [
       // Set user_email in session
       req.session.userId = email; // Store email as userId
       verificationCodes.delete(email);
-      res.status(201).json({ message: 'User registered successfully' });
+      res.status(201).json({ success: true, message: 'User registered successfully' });
     }
 
     // ========== for login ==============
     else if (storedData.type === 'login') {
-      await db.run('INSERT OR REPLACE INTO devices (user_email, device_id, last_login) VALUES (?, ?, CURRENT_TIMESTAMP)', [user_email, deviceId]);
+      await db.run('INSERT OR REPLACE INTO devices (user_email, device_id, last_login) VALUES (?, ?, CURRENT_TIMESTAMP)', [email, deviceId]);
       verificationCodes.delete(email);
-      req.session.userId = user_email; // Store email as userId
-      res.status(200).json({ message: 'Logged in successfully' });
+      req.session.userId = email; // Store email as userId
+      res.status(200).json({ success: true, message: 'Logged in successfully' });
     }
 
     // =========== for profile updates ===========
@@ -149,7 +149,7 @@ router.post('/verify', strictRateLimiter, [
     }
   } catch (error) {
     console.error(error);
-    res.status(500).json({ message: 'Server error' });
+    res.status(500).json({ message: 'Unexpected error' });
   }
 });
 
@@ -202,7 +202,7 @@ router.post('/login', strictRateLimiter, [
     res.json({ success: true, message: 'Logged in successfully' });
   } catch (error) {
     console.error(error);
-    res.status(500).json({ message: 'Server error' });
+    res.status(500).json({ message: 'Unexpected error' });
   }
 });
 
@@ -235,7 +235,7 @@ router.get('/profile', rateLimiter, async (req, res) => {
         res.json(user);
     } catch (error) {
         console.error('Error fetching profile:', error);
-        res.status(500).json({ message: 'Server error' });
+        res.status(500).json({ message: 'Unexpected error' });
     }
 });
   
@@ -282,7 +282,7 @@ router.get('/profile/page', rateLimiter, async (req, res) => {
     } catch (error) {
         console.error('Error:', error);
         res.status(500).render('error', {
-            title: 'Server Error',
+            title: 'Unexpected Error',
             message: 'Failed to load profile',
             cssPath: '/css/home.css'
         });
@@ -338,7 +338,7 @@ router.put('/profile', strictRateLimiter, [
         res.json({ message: 'No updates provided' });
     } catch (error) {
         console.error('Password update error:', error);
-        res.status(500).json({ message: 'Server error' });
+        res.status(500).json({ message: 'Unexpected error' });
     }
 });
 

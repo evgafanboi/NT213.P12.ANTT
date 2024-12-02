@@ -48,7 +48,7 @@ router.post('/', strictRateLimiter, [
     res.status(201).json({ id: result.id, message: 'Comment created successfully' });
   } catch (error) {
     console.error(error);
-    res.status(500).json({ message: 'Server error' });
+    res.status(500).json({ message: 'Unexpected error' });
   }
 });
 
@@ -78,7 +78,7 @@ router.get('/post/:postId', rateLimiter, async (req, res) => {
     res.json(renderedComments);
   } catch (error) {
     console.error(error);
-    res.status(500).json({ message: 'Server error' });
+    res.status(500).json({ message: 'Unexpected error' });
   }
 });
 
@@ -106,7 +106,7 @@ router.put('/:id', strictRateLimiter, [
     res.json({ message: 'Comment updated successfully' });
   } catch (error) {
     console.error(error);
-    res.status(500).json({ message: 'Server error' });
+    res.status(500).json({ message: 'Unexpected error' });
   }
 });
 
@@ -125,7 +125,7 @@ router.delete('/:id', checkAuth, rateLimiter, async (req, res) => {
     res.json({ message: 'Comment deleted successfully' });
   } catch (error) {
     console.error(error);
-    res.status(500).json({ message: 'Server error' });
+    res.status(500).json({ message: 'Unexpected error' });
   }
 });
 
@@ -154,7 +154,7 @@ router.get('/user', rateLimiter, checkAuth, async (req, res) => {
         res.json(commentsWithBoth);
     } catch (error) {
         console.error('Error fetching user comments:', error);
-        res.status(500).json({ message: 'Server error' });
+        res.status(500).json({ message: 'Unexpected error' });
     }
 });
 

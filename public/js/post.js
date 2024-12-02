@@ -35,6 +35,8 @@ async function checkLoginStatus() {
         
         // Register logout handler
         document.querySelector('.logout-btn').addEventListener('click', async () => {
+            this.disabled = true;
+            this.textContent = 'Logging out...';
             try {
                 const response = await fetch('/auth/logout', {
                     method: 'POST',

@@ -92,6 +92,7 @@ async function initializePostButton() {
         e.preventDefault();
         const title = document.getElementById('post-title').value;
         const content = document.getElementById('post-content').value;
+        postForm.disabled = true;
 
         try {
             // Check logged in state

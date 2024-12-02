@@ -61,6 +61,9 @@ document.addEventListener('DOMContentLoaded', async () => {
         form.addEventListener('submit', async (e) => {
             e.preventDefault();
             const newUsername = input.value.trim();
+            const submitBtn = e.target.querySelector('button[type="submit"]');
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Saving...';
 
             if (newUsername === currentUsername) {
                 form.remove();
@@ -100,10 +103,14 @@ document.addEventListener('DOMContentLoaded', async () => {
     });
 
     deletePostBtns.forEach(deleteBtn => {
-        deleteBtn.addEventListener('click', function(e) {
-            e.stopPropagation(); // Prevent event bubbling
+        deleteBtn.addEventListener('click', async function(e) {
+            e.stopPropagation();
+            this.disabled = true;
+            this.textContent = 'Deleting...';
             const postArticle = this.closest('.post-preview');
             const postId = this.getAttribute('data-post-id');
+
+            const csrfToken = await getCsrfToken();
             
             // Simple confirmation
             if (!confirm('Are you sure you want to delete this post?')) {
@@ -113,6 +120,9 @@ document.addEventListener('DOMContentLoaded', async () => {
             // Delete post
             fetch(`/api/posts/${postId}`, {
                 method: 'DELETE',
+                headers: {
+                    'x-csrf-token': csrfToken
+                },
                 credentials: 'include'
             })
             .then(response => response.json())
@@ -136,6 +146,11 @@ document.addEventListener('DOMContentLoaded', async () => {
                 console.error('Error deleting post:', error);
                 alert('Failed to delete post');
             });
+
+            if (!error) {
+                deleteBtn.disabled = false;
+                deleteBtn.textContent = 'Delete';
+            }
         });
     });
 
@@ -188,6 +203,10 @@ document.addEventListener('DOMContentLoaded', async () => {
     // Handle edit form submission
     editForm.addEventListener('submit', async (e) => {
         e.preventDefault();
+        const submitBtn = e.target.querySelector('button[type="submit"]');
+        submitBtn.disabled = true;
+        submitBtn.textContent = 'Saving...';
+        
         const postId = editPostId.value;
         
         try {
@@ -318,6 +337,10 @@ document.addEventListener('DOMContentLoaded', async () => {
         // Handle comment edit form submission
         editCommentForm.addEventListener('submit', async (e) => {
             e.preventDefault();
+            const submitBtn = e.target.querySelector('button[type="submit"]');
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Saving...';
+            
             const commentId = editCommentId.value;
             
             try {
@@ -443,6 +466,10 @@ document.addEventListener('DOMContentLoaded', async () => {
     // Password change form submission
     changePasswordForm.addEventListener('submit', async (e) => {
         e.preventDefault();
+        const submitBtn = e.target.querySelector('button[type="submit"]');
+        submitBtn.disabled = true;
+        submitBtn.textContent = 'Processing...';
+
         const currentPassword = document.getElementById('current-password').value;
         const newPassword = document.getElementById('new-password').value;
         const confirmPassword = document.getElementById('confirm-password').value;
@@ -481,12 +508,19 @@ document.addEventListener('DOMContentLoaded', async () => {
         } catch (error) {
             console.error('Error:', error);
             alert('Failed to process request');
+        } finally {
+            submitBtn.disabled = false;
+            submitBtn.textContent = 'Change Password';
         }
     });
 
     // Add verification form handler
     verifyPasswordForm.addEventListener('submit', async (e) => {
         e.preventDefault();
+        const submitBtn = e.target.querySelector('button[type="submit"]');
+        submitBtn.disabled = true;
+        submitBtn.textContent = 'Processing...';
+
         const code = document.getElementById('verification-code').value;
 
         try {
@@ -520,6 +554,9 @@ document.addEventListener('DOMContentLoaded', async () => {
         } catch (error) {
             console.error('Error:', error);
             alert('Failed to verify code');
+        } finally {
+            submitBtn.disabled = false;
+            submitBtn.textContent = 'Verify';
         }
     });
 }); 
