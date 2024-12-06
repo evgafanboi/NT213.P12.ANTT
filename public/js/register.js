@@ -1,5 +1,3 @@
-const { get } = require("../../src/db/database");
-
 const registerForm = document.getElementById('registerForm');
 const verificationForm = document.getElementById('verificationForm');
 let userEmail = '';
