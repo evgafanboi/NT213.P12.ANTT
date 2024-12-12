@@ -353,15 +353,23 @@ overflow-y: auto;
     margin: 10px 0;
     font-size: 0.9em;
     line-height: 1.5;
-    max-height: 150px;
-    overflow: hidden;
-    position: relative;
     background-color: #1e1e1e;
     padding: 10px;
     border-radius: 4px;
+    
+    /* Only apply fade-out if content is longer than 150px */
+    max-height: none;
+    overflow: visible;
+    position: relative;
 }
 
-.post-content-preview::after {
+.post-content-preview.overflowing {
+    max-height: 150px;
+    overflow: hidden;
+    position: relative;
+}
+
+.post-content-preview.overflowing::after {
     content: '';
     position: absolute;
     bottom: 0;
