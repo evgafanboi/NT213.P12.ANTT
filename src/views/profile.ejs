@@ -4,8 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Profile | <%= user.username %></title>
-    <link rel="stylesheet" href="/css/home.css">
-    <link rel="stylesheet" href="/css/profile.css">
+    <link rel="stylesheet" href="/css/home.css" nonce="<%= locals.nonce %>">
+    <link rel="stylesheet" href="/css/profile.css" nonce="<%= locals.nonce %>">
 </head>
 <body>
     <div class="container">
@@ -125,7 +125,7 @@
                             </div>
                             <button type="submit">Change Password</button>
                         </form>
-                        <form id="verify-password-form" style="display: none;">
+                        <form id="verify-password-form">
                             <p>Please enter the verification code sent to your email</p>
                             <input type="text" id="verification-code" placeholder="6-digit code" maxlength="6" required>
                             <button type="submit">Verify & Change Password</button>
@@ -136,7 +136,7 @@
         </main>
     </div>
     
-    <script src="/js/navbar.js"></script>
-    <script src="/js/profile.js"></script>
+    <script nonce="<%= locals.nonce %>" src="/js/navbar.js"></script>
+    <script nonce="<%= locals.nonce %>" src="/js/profile.js"></script>
 </body>
 </html>

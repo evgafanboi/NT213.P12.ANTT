@@ -16,13 +16,19 @@ const VALID_DURATION = 604800000; // 1 WEEK in milliseconds
 const strictRateLimiter = rateLimit({
   windowMs: 900000, // 15 minutes
   max: 5,
-  skipSuccessfulRequests: true
+  skipSuccessfulRequests: true,
+  message: 'Rate limit hit.',
+  standardHeaders: true,
+  legacyHeaders: false,
 });
 
 // Less strict limit for frequent endpoints (/profile)
 const rateLimiter = rateLimit({
   windowMs: 900000, // 15 minutes
-  max: 30 // limit each IP to 30 requests per windowMs
+  max: 30, // limit each IP to 30 requests per windowMs
+  message: 'Rate limit hit.',
+  standardHeaders: true,
+  legacyHeaders: false,
 });
 
 // Check if the code is expired
@@ -33,9 +39,14 @@ function isCodeExpired(timestamp) {
 
 // Custom password validator: at least 9 characters, 1 uppercase, 1 lowercase, 1 number, 1 special character
 const passwordValidator = (value) => {
+  // Validate length first
+  if (value.length < 9 || value.length > 64) {
+    throw new Error('Password must be between 9 and 64 characters');
+  }
+
   const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>/?]).{9,}$/;
   if (!passwordRegex.test(value)) {
-    throw new Error('Insecure password');
+    throw new Error('Password must include lowercase, uppercase, number, and special character');
   }
   return true;
 };
@@ -373,6 +384,10 @@ router.post('/update-username', strictRateLimiter, async (req, res) => {
     
     if (!username || username.trim().length === 0) {
         return res.status(400).json({ message: 'Username cannot be empty' });
+    }
+
+    if(!username.trim().length > 25) {
+      return res.status(400).json({message: 'Username too long' });
     }
 
     try {

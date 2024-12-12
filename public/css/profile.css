@@ -398,6 +398,9 @@
     color: #888;
     margin: 10px 0;
 }
+#verify-password-form {
+    display: none;
+}
 
 #change-password-form input,
 #verify-password-form input {

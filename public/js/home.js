@@ -205,6 +205,8 @@ function checkPostPreviewOverflow() {
         // Check if content exceeds 150px height
         if (preview.scrollHeight > 150) {
             preview.classList.add('overflowing');
+            preview.style.maxHeight = '150px';
+            preview.style.overflow = 'hidden';
         } else {
             preview.classList.remove('overflowing');
         }
@@ -268,6 +270,11 @@ window.addEventListener('DOMContentLoaded', async () => {
             // If there is no search query, reload original posts
             window.location.reload();
         }
+    });
+
+    // Apply highlighting to all code blocks
+    document.querySelectorAll('pre code').forEach((block) => {
+        hljs.highlightElement(block);
     });
 });
 

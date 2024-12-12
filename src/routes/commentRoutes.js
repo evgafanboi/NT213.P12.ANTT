@@ -31,7 +31,9 @@ const strictRateLimiter = rateLimit({
 // Create a new comment
 router.post('/', strictRateLimiter, [
   body('post_id').isInt(),
-  body('content').isLength({ min: 1 }).trim(),
+  body('content')
+    .trim()
+    .isLength({ min:1, max: 1000}).withMessage('Constructive criticism is appreciated, but not walls of text'),
 ], checkAuth, async (req, res) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
@@ -84,7 +86,9 @@ router.get('/post/:postId', rateLimiter, async (req, res) => {
 
 // Update a comment
 router.put('/:id', strictRateLimiter, [
-  body('content').isLength({ min: 1 }).trim(),
+  body('content')
+  .trim()
+  .isLength({ min:1, max: 1000}).withMessage('Constructive criticism is appreciated, but not walls of text'),
 ], checkAuth, async (req, res) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
