@@ -142,7 +142,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             if (response.ok) {
                 alert(result.message);
-                window.location.href = '/login';
+                window.location.href = '/home';
             } else {
                 alert(result.message);
                 if (result.message.includes('expired')) {
