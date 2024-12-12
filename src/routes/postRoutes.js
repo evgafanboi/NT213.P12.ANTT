@@ -12,12 +12,18 @@ const { renderAndSanitizeMarkdown } = require(path.join(__dirname, '..', 'utils'
 
 const homeRateLimiter = rateLimit({
   windowMs: 600000, // 10 minutes
-  max: 50 // limit each IP to 50 requests per windowMs
+  max: 50, // limit each IP to 50 requests per windowMs
+  message: 'Rate limit hit.',
+  standardHeaders: true,
+  legacyHeaders: false,
 });
 
 const rateLimiter = rateLimit({
   windowMs: 900000, // 15 minutes
-  max: 30 // limit each IP to 30 requests per windowMs
+  max: 30, // limit each IP to 30 requests per windowMs
+  message: 'Rate limit hit.',
+  standardHeaders: true,
+  legacyHeaders: false,
 });
 
 const strictRateLimiter = rateLimit({
@@ -25,7 +31,7 @@ const strictRateLimiter = rateLimit({
   max: 10, // limit each IP to 10 requests per windowMs
   message: 'Too many requests, please try again later.',
   standardHeaders: true, // Return rate limit info in the `RateLimit-*` headers
-  legacyHeaders: false, // Disable the `X-RateLimit-*` headers  
+  legacyHeaders: false, // Disable the `X-RateLimit-*` headers
 });
 
 // Middleware to check authentication
@@ -38,8 +44,13 @@ const checkAuth = (req, res, next) => {
 
 // Create a new post
 router.post('/', strictRateLimiter, [
-  body('title').trim().escape(),
-  body('content').trim(),
+  body('title')
+    .trim()
+    .escape()
+    .isLength({ min: 1, max: 100 }).withMessage('Title must be 1-100 characters long'),
+  body('content')
+    .trim()
+    .isLength({ min: 1, max: 5000 }).withMessage('Content must be 1-5000 characters long'),
 ], checkAuth, async (req, res) => {
   try {
     const errors = validationResult(req);
@@ -62,7 +73,7 @@ router.post('/', strictRateLimiter, [
     console.error('Error creating post:', error);
     res.status(500).json({ 
       message: 'Unexpected error',
-      details: error.message // Include error details
+      details: error.message
     });
   }
 });
@@ -188,10 +199,22 @@ router.get('/:id/page', rateLimiter, async (req, res) => {
 
 // Update a post
 router.put('/:id', strictRateLimiter, [
-  body('title').optional().isLength({ min: 1 }).trim(),
-  body('content').optional().isLength({ min: 1 }).trim(),
+  body('title')
+    .optional()
+    .trim()
+    .escape()
+    .isLength({ min: 1, max: 100 }).withMessage('Title must be 1-100 characters long'),
+  body('content')
+    .optional()
+    .trim()
+    .isLength({ min: 1, max: 5000 }).withMessage('Content must be 1-5000 characters long'),
 ], checkAuth, async (req, res) => {
   try {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({ errors: errors.array() });
+    }
+
     const { title, content } = req.body;
     
     // First verify ownership

@@ -17,18 +17,36 @@ const ejs = require('ejs');
 const db = require('./db/database');
 const { doubleCsrf } = require('csrf-csrf');
 const cookieParser = require('cookie-parser');
+const winston = require('winston');
+const crypto = require('crypto');
 
 const app = express();
 
 app.use(cookieParser());
 
+const nonceMiddleware = (req, res, next) => {
+    // Generate a unique nonce for each request
+    const nonce = crypto.randomBytes(16).toString('base64');
+
+    console.log('Generated Nonce:', nonce)
+    res.locals.nonce = nonce;
+    next();
+  };
+
+app.use(nonceMiddleware);
 // Middleware setup
 app.use(helmet({
   contentSecurityPolicy: {
     directives: {
       defaultSrc: ["'self'"],
-      scriptSrc: ["'self'", "'unsafe-inline'"],
-      styleSrc: ["'self'", "'unsafe-inline'"],
+      scriptSrc: [
+        "'self'", 
+        (req, res) => `'nonce-${res.locals.nonce}'`
+      ],
+      styleSrc: [
+        "'self'", 
+        (req, res) => `'nonce-${res.locals.nonce}'`
+      ],
       imgSrc: ["'self'"],
       fontSrc: ["'self'"],
     },
@@ -36,7 +54,8 @@ app.use(helmet({
   referrerPolicy: { policy: 'same-origin' },
   crossOriginEmbedderPolicy: true,
   crossOriginOpenerPolicy: { policy: 'same-origin' },
-  crossOriginResourcePolicy: { policy: 'same-origin' }
+  crossOriginResourcePolicy: { policy: 'same-origin' },
+  hidePoweredBy: true,
 }));
 app.use(xss());
 app.use(express.json({ limit: '10kb' }));
@@ -87,6 +106,19 @@ app.use((req, res, next) => {
     if (!req.cookies['x-csrf-token']) {
         generateToken(req, res);
     }
+
+    const allowedHosts = [
+        `localhost:${process.env.HTTPS_PORT}`,
+        `localhost:${process.env.HTTP_PORT}`,
+        '127.0.0.1',
+        process.env.ALLOWED_HOST
+    ];
+
+    const host = req.get('host');
+    if (!allowedHosts.includes(host)) {
+        console.log(`A request with invalid host header was received: ${host}`);
+        return res.status(403).send('Invalid Host');
+    }
     next();
 });
 
@@ -132,7 +164,10 @@ app.use('/api/comments', commentRoutes);
 // very high limit for all public routes
 const limiter = rateLimit({
   windowMs: 600000, // 10 minutes
-  max: 50 // limit each IP to 50 requests per windowMs
+  max: 50, // limit each IP to 50 requests per windowMs
+  message: 'Rate limit hit.',
+  standardHeaders: true,
+  legacyHeaders: false,
 });
 
 app.use(limiter);
@@ -233,3 +268,25 @@ httpServer.listen(HTTP_PORT, () => console.log(`HTTP Server running on port ${HT
 const isAuthenticated = (req, res, next) => {
   req.session.userId ? next() : res.status(401).json({ message: 'Unauthorized' });
 };
+
+const logger = winston.createLogger({
+  level: 'info',
+  format: winston.format.combine(
+    winston.format.timestamp(),
+    winston.format.json()
+  ),
+  transports: [
+    new winston.transports.File({ filename: 'error.log', level: 'error' }),
+    new winston.transports.File({ filename: 'combined.log' })
+  ]
+});
+
+// Use in your error handling
+app.use((err, req, res, next) => {
+  logger.error({
+    message: err.message,
+    stack: err.stack,
+    timestamp: new Date().toISOString()
+  });
+  res.status(500).send('Unexpected error.');
+});

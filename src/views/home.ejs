@@ -4,18 +4,18 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>NTee213</title>
-    <link rel="stylesheet" href="/css/home.css">
-    <link rel="stylesheet" href="/css/floating-button.css">
+    <link rel="stylesheet" href="/css/home.css" nonce="<%= locals.nonce %>">
+    <link rel="stylesheet" href="/css/floating-button.css" nonce="<%= locals.nonce %>">
     <script src="/js/home.js"></script>
 </head>
 <body>
     <div class="container">
-        <nav class="navbar">    <!-------------NAVBAR-------------- navbar should be consistent across all main pages ---> 
+        <nav class="navbar">
             <ul>
                 <li><a href="/home">Home</a></li>
                 <li><a href="#">Settings</a></li>
             </ul>
-        </nav>                  <!-------------NAVBAR ENDS----------->
+        </nav>
         <button id="navbar-toggle" class="navbar-toggle">≡</button>
         <div class="content">
             <header class="header">
@@ -55,7 +55,7 @@
             </main>
         </div>
         <!-- CREATE POST BUTTON -->
-        <div id="create-post-button" style="display: none;">
+        <div id="create-post-button">
             <button class="floating-button">🖊️</button>
         </div>
 
@@ -74,21 +74,7 @@
     </div>
     
     <!-- Add highlight.js and marked scripts -->
-    <script src="/js/lib/highlight.min.js"></script>
-    <script src="/js/lib/marked.min.js"></script>
-    <script>
-        // Initialize highlight.js with specific languages
-        hljs.configure({
-            languages: ['javascript', 'python', 'bash', 'html', 'css', 'sql', 'sh', 'json', 'yaml', 'markdown', 'toml', 'c', 'cpp', 'java', 'php', 'ruby', 'swift', 'kotlin', 'go', 'rust', 'scala', 'haskell', 'erlang', 'elixir', 'dart', 'typescript'],
-            cssSelector: 'pre code'
-        });
-
-        document.addEventListener('DOMContentLoaded', () => {
-            // Apply highlighting to all code blocks
-            document.querySelectorAll('pre code').forEach((block) => {
-                hljs.highlightElement(block);
-            });
-        });
-    </script>
+    <script nonce="<%= locals.nonce %>" src="/js/lib/highlight.min.js"></script>
+    <script nonce="<%= locals.nonce %>" src="/js/lib/marked.min.js"></script>
 </body>
 </html>

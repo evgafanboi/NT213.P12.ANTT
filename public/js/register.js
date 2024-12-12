@@ -165,7 +165,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const timerId = setInterval(() => {
             const minutes = Math.floor(timeLeft / 60);
             const seconds = timeLeft % 60;
-            timerElement.textContent = `Verification code valid for: ${minutes}:${seconds.toString().padStart(2, '0')}`; // ticktack mf
+            timerElement.textContent = `Verification code valid for: ${minutes}:${seconds.toString().padStart(2, '0')}`;
             
             if (timeLeft <= 0) {
                 clearInterval(timerId);

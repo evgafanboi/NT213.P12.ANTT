@@ -16,17 +16,17 @@ function createTables() {
   const createUsersTable = `
     CREATE TABLE IF NOT EXISTS users (
       email TEXT PRIMARY KEY NOT NULL,
-      username TEXT,
-      password TEXT NOT NULL,
+      username TEXT CHECK(length(username) <= 25),
+      password TEXT NOT NULL CHECK(length(password) >= 9 AND length(password) <= 64),
       created_at DATETIME DEFAULT CURRENT_TIMESTAMP
-    )`; // username can be arbitrary and will be set up later by the user in the user's interface once they are logged in. simplicity
+    )`;
   
   const createPostsTable = `
     CREATE TABLE IF NOT EXISTS posts (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       email TEXT NOT NULL,
-      title TEXT NOT NULL,
-      content TEXT NOT NULL,
+      title TEXT NOT NULL CHECK(length(title) <= 100),
+      content TEXT NOT NULL CHECK(length(content) <= 5000),
       created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
       updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
       FOREIGN KEY (email) REFERENCES users (email) ON DELETE CASCADE
@@ -37,7 +37,7 @@ function createTables() {
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       email TEXT NOT NULL,
       post_id INTEGER NOT NULL,
-      content TEXT NOT NULL,
+      content TEXT NOT NULL CHECK(length(content) <= 1000),
       created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
       updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
       FOREIGN KEY (email) REFERENCES users (email) ON DELETE CASCADE,

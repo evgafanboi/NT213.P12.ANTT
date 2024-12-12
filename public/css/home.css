@@ -234,6 +234,10 @@ main {
     }
 }
 
+#create-post-button {
+    display: none;
+}
+
 /* NEWS FEED AND POST STYLING */
 .news-feed {
     max-width: 800px;
@@ -384,7 +388,7 @@ main {
     
     /* Only apply fade-out if content is longer than 150px */
     max-height: none;
-    overflow: visible;
+    overflow: auto;
     position: relative;
 }
 
@@ -408,6 +412,11 @@ main {
 .post-content-preview h3 {
     color: #dadada
 }
+
+.post-content-preview * {
+    overflow: auto;
+}
+
 .view-post {
     color: #00ff99;
     cursor: pointer;
