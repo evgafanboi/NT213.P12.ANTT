@@ -187,8 +187,9 @@ app.use((err, req, res, next) => {
 
 // SSL/TLS configuration
 const options = {
-  key: fs.readFileSync(path.join(__dirname, '..', 'ssl', 'key.pem')),
-  cert: fs.readFileSync(path.join(__dirname, '..', 'ssl', 'cert.pem'))
+    key: fs.readFileSync('/etc/letsencrypt/live/phucle.cloud/privkey.pem'),
+    cert: fs.readFileSync('/etc/letsencrypt/live/phucle.cloud/fullchain.pem'),
+    ca: fs.readFileSync('/etc/letsencrypt/live/phucle.cloud/chain.pem')
 };
 
 // Create HTTPS server
