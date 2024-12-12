@@ -145,15 +145,28 @@ app.set('views', path.join(__dirname, 'views'));
 
 
 // ROOT DIR
-app.get('/', limiter, (req, res) => res.redirect('/api/posts/home'));
+app.get('/', async (req, res) => {
+    const searchQuery = req.query.search || '';
+    
+    // Redirect to the posts home route with search query
+    res.redirect(`/api/posts/home?search=${encodeURIComponent(searchQuery)}`);
+});
 
 // Serve login and register pages
 app.get('/login', limiter, (req, res) => res.sendFile(path.join(__dirname, 'views', 'login.html')));
 app.get('/register', limiter, (req, res) => res.sendFile(path.join(__dirname, 'views', 'register.html')));
 
+// Server password reset page
+app.get('/forgot-password', limiter, (req, res) => res.sendFile(path.join(__dirname, 'views', 'password-reset.html')));
 
 // Serve publicly available pages
-app.get('/home', async (req, res) => res.redirect('/api/posts/home')); //(limiter is delegated to postRoutes' limiter)
+app.get('/home', async (req, res) => {
+    // Delegate search handling to posts route
+    const searchQuery = req.query.search || '';
+    
+    // Redirect to the posts home route with search query
+    res.redirect(`/api/posts/home?search=${encodeURIComponent(searchQuery)}`);
+});
 
 // Redirect /post/:id to /api/posts/:id/page  (limiter is delegated to postRoutes' limiter)
 app.get('/post/:id', (req, res) => {

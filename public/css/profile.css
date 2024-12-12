@@ -21,7 +21,8 @@
     border-radius: 8px;
     margin-top: 30px;
     margin-bottom: 30px;
-    min-width: 600px;
+    min-width: 500px;
+    overflow: auto;
 }
 
 .user-info p {

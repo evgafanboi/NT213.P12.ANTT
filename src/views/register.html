@@ -2,21 +2,21 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Register | Đăng ký</title>
+    <title>NTee213 | Register</title>
     <link rel="stylesheet" href="css/register.css">
 </head>
 <body>
     <div class="form-container">
         <form id="registerForm">
             <label>
-                <p class="info-hover" data-tooltip="thông tin 1"></p>
+                <p class="info-hover" data-tooltip="Your email goes here, makes sure its a public email address and a gmail address can sends to it."></p>
                 Email <input type="text" name="email" required>
             </label>
             <p id="emailError" class="error-message"></p>
             
             <label>
-                <p class="info-hover" data-tooltip="thông tin 2"></p>
-                Mật khẩu 
+                <p class="info-hover" data-tooltip="Your password is required to be at least 9 charactes in length, must contain at least 1 special character, 1 number, 1 uppercase."></p>
+                Password
                 <div class="password-container">
                     <input type="password" name="password" required>
                     <span class="password-toggle"></span>
@@ -25,8 +25,7 @@
             <div id="passwordError" class="error-message"></div>
 
             <label>
-                <p class="info-hover" data-tooltip="thong tin 3"></p>
-                Nhập lại mật khẩu
+                Confirm password
                 <div class="password-container">
                     <input type="password" name="passwordClone" required>
                     <span class="password-toggle"></span>
@@ -44,7 +43,7 @@
             <p id="expirationTimer"></p>
         </form>
         
-        <a href="login"><p class="log-prompt">Đã có tài khoản?</p></a>
+        <a href="login"><p class="log-prompt">Already have an account? Login</p></a>
     </div>
     <script src="js/register.js"></script>
 </body>

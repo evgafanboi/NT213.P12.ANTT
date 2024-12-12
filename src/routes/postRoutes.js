@@ -81,10 +81,6 @@ router.get('/count', rateLimiter, async (req, res) => {
 
 router.get('/', rateLimiter, async (req, res) => {
     try {
-        const page = parseInt(req.query.page) || 1;
-        const limit = parseInt(req.query.limit) || 10;
-        const offset = (page - 1) * limit;
-
         // Get posts with user information
         const posts = await db.all(`
             SELECT 
@@ -98,14 +94,56 @@ router.get('/', rateLimiter, async (req, res) => {
             FROM posts p
             LEFT JOIN users u ON p.email = u.email
             ORDER BY p.created_at DESC
-            LIMIT ? OFFSET ?
-        `, [limit, offset]);
+            LIMIT 20
+        `);
         
         res.json(posts);
     } catch (error) {
         console.error('Error fetching posts:', error);
         res.status(500).json({ message: 'Unexpected error' });
     }
+});
+
+// New endpoint for searching posts
+router.get('/search', rateLimiter, async (req, res) => {
+  const searchQuery = req.query.query || '';
+    
+  try {
+      let query = `
+          SELECT 
+              p.id,
+              p.title,
+              p.content,
+              p.created_at,
+              u.username as author_name
+          FROM posts p
+          LEFT JOIN users u ON p.email = u.email
+          WHERE 
+              p.title LIKE ? OR 
+              p.content LIKE ? OR 
+              u.username LIKE ?
+          ORDER BY p.created_at DESC 
+          LIMIT 20
+      `;
+      
+      const params = [`%${searchQuery}%`, `%${searchQuery}%`, `%${searchQuery}%`];
+      
+      const posts = await db.all(query, params);
+
+      // Pre-render markdown for each post
+      const postsWithMarkdown = posts.map(post => ({
+          ...post,
+          title: post.title,
+          content: renderAndSanitizeMarkdown(post.content),
+          created_at: post.created_at,
+          author_name: post.author_name
+      }));
+
+      res.json(postsWithMarkdown);
+  } catch (error) {
+      console.error('Error searching posts:', error);
+      res.status(500).json({ message: 'Failed to search posts' });
+  }
 });
 
 // Get a specific post
@@ -202,10 +240,12 @@ router.delete('/:id', rateLimiter, checkAuth, async (req, res) => {
     }
 });
 
-// Get posts review and render home page
+// Get posts review and render home page, based on the query on the URL
 router.get('/home', homeRateLimiter, async (req, res) => {
+    const searchQuery = req.query.search || '';
+    
     try {
-        const posts = await db.all(`
+        const query = `
             SELECT 
                 p.id,
                 p.title,
@@ -214,22 +254,29 @@ router.get('/home', homeRateLimiter, async (req, res) => {
                 u.username as author_name
             FROM posts p
             LEFT JOIN users u ON p.email = u.email
-            ORDER BY p.created_at DESC
-            LIMIT 10
-        `);
+            ${searchQuery ? 'WHERE p.title LIKE ? OR p.content LIKE ? OR u.username LIKE ?' : ''}
+            ORDER BY p.created_at DESC 
+            LIMIT 20
+        `;
+        
+        const params = searchQuery 
+            ? [`%${searchQuery}%`, `%${searchQuery}%`, `%${searchQuery}%`] 
+            : [];
+        
+        const posts = await db.all(query, params);
 
-        // Pre-render markdown for each post
         const postsWithMarkdown = posts.map(post => ({
             ...post,
-            title: post.title, // Keep title as is
-            content: renderAndSanitizeMarkdown(post.content), // Pre-render the content
+            title: post.title,
+            content: renderAndSanitizeMarkdown(post.content),
             created_at: post.created_at,
             author_name: post.author_name
         }));
 
         res.render('home', { 
             posts: postsWithMarkdown,
-            isLoggedIn: !!req.session.userId
+            isLoggedIn: !!req.session.userId,
+            searchQuery: searchQuery
         });
     } catch (error) {
         console.error('Error fetching posts:', error);
