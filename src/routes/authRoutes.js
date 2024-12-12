@@ -144,6 +144,18 @@ router.post('/verify', strictRateLimiter, [
       return res.json({ success: true, message: 'Profile updated successfully' });
     }
 
+    // ========== for password resetting ==============
+    else if (storedData.type === 'password-reset') {
+      // Simply set the session for password reset
+      req.session.passwordResetEmail = email;
+      verificationCodes.delete(email);
+      return res.json({ 
+        success: true, 
+        message: 'Verification successful',
+        allowPasswordReset: true 
+      });
+    }
+
     else {
       return res.status(400).json({ message: 'Invalid verification type' });
     }
@@ -215,7 +227,7 @@ router.get('/check-session', (req, res) => {
   }
 });
 
-// Logout route -------------------------------------TODO: remove user's device record from the db------------------------------------------------
+// Logout route
 router.post('/logout', strictRateLimiter, (req, res) => {
   req.session.destroy((err) => {
     if (err) {
@@ -374,5 +386,85 @@ router.post('/update-username', strictRateLimiter, async (req, res) => {
     }
 });
 
+// Endpoint for password reset
+router.post('/reset-password', strictRateLimiter, [
+  body('newPassword').custom(passwordValidator)
+], async (req, res) => {
+    // Check if user is allowed to reset password
+    if (!req.session.passwordResetEmail) {
+        return res.status(401).json({ message: 'Unauthorized reset attempt' });
+    }
+
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+        return res.status(400).json({ 
+            message: 'Password does not meet security requirements',
+            errors: errors.array() 
+        });
+    }
+
+    const { newPassword } = req.body;
+    const deviceId = req.headers['user-agent'] || 'unknown';
+
+    try {
+        const hashedPassword = await bcrypt.hash(newPassword, 10);
+        await db.run('UPDATE users SET password = ? WHERE email = ?', 
+            [hashedPassword, req.session.passwordResetEmail]);
+
+        // Invalidate all existing sessions for all saved devices for this user
+        await db.run('DELETE FROM devices WHERE user_email = ?', 
+            [req.session.passwordResetEmail]);
+
+        // Add the current device as a new trusted device
+        await db.run('INSERT INTO devices (user_email, device_id, last_login) VALUES (?, ?, CURRENT_TIMESTAMP)', 
+            [req.session.passwordResetEmail, deviceId]);
+
+        // Clear reset session
+        delete req.session.passwordResetEmail;
+
+        res.json({ 
+            success: true, 
+            message: 'Password reset successfully. Please log in.' 
+        });
+    } catch (error) {
+        console.error('Password reset error:', error);
+        res.status(500).json({ message: 'Unexpected error' });
+    }
+});
+
+// Endpoint for forgot-password
+router.post('/forgot-password', strictRateLimiter, [
+  body('email').isEmail().normalizeEmail(),
+], async (req, res) => {
+  const { email } = req.body;
+
+  try {
+    // Verify email exists
+    const user = await db.get('SELECT * FROM users WHERE email = ?', [email]);
+    if (!user) {
+      // Deliberately vague response to prevent email enumeration
+      return res.status(200).json({ 
+        message: 'If an account exists, a verification code will be sent' 
+      });
+    }
+
+    const verificationCode = generateVerificationCode();
+    verificationCodes.set(email, {
+      code: verificationCode,
+      type: 'password-reset',
+      timestamp: Date.now()
+    });
+
+    await sendVerificationEmail(email, verificationCode, 'Password Reset');
+
+    res.status(200).json({ 
+      message: 'Verification code sent to your email',
+      require2FA: true 
+    });
+  } catch (error) {
+    console.error('Forgot password error:', error);
+    res.status(500).json({ message: 'Unexpected error' });
+  }
+});
 
 module.exports = router;

@@ -20,6 +20,49 @@ async function fetchUserProfile() {
     }
 }
 
+// Function to search posts
+async function searchPosts(query) {
+    try {
+        // Encode the query for the URL
+        const encodedQuery = encodeURIComponent(query);
+        const response = await fetch(`/api/posts/search?query=${encodedQuery}`);
+        
+        if (!response.ok) {
+            throw new Error('Search failed');
+        }
+        return await response.json();
+    } catch (error) {
+        console.error('Search error:', error);
+        return [];
+    }
+}
+
+// Function to render search results
+function renderSearchResults(posts) {
+    const newsFeed = document.querySelector('.news-feed');
+    
+    // Clear existing posts
+    newsFeed.innerHTML = '';
+
+    if (posts.length === 0) {
+        newsFeed.innerHTML = '<p>No posts found</p>';
+        return;
+    }
+
+    // Render search results
+    posts.forEach(post => {
+        const postElement = document.createElement('article');
+        postElement.classList.add('post-preview');
+        postElement.innerHTML = `
+            <h3>${post.title}</h3>
+            <div class="post-content-preview">${post.content}</div>
+            <span class="post-date">${new Date(post.created_at).toLocaleDateString()}</span>
+            <a href="/post/${post.id}" class="view-post">View Post</a>
+        `;
+        newsFeed.appendChild(postElement);
+    });
+}
+
 // Function to check if the user is logged in
 async function checkLoginStatus() {
     const usernameDiv = document.querySelector('.username');
@@ -174,5 +217,66 @@ window.addEventListener('DOMContentLoaded', async () => {
     await initializePostButton();
     initializeNavbarToggle();
     checkPostPreviewOverflow(); // overflow handler
+
+    // Check for initial search query
+    const urlParams = new URLSearchParams(window.location.search);
+    const initialSearchQuery = urlParams.get('search');
+
+    // Search bar
+    const searchForm = document.getElementById('search-form');
+    const searchInput = searchForm.querySelector('input[name="search"]');
+    
+    // If there's an initial search query, perform search
+    if (initialSearchQuery) {
+        const decodedSearchQuery = decodeURIComponent(initialSearchQuery);
+        searchInput.value = decodedSearchQuery;
+        await performSearch(decodedSearchQuery);    //decode and search
+    }
+
+    if (searchForm) {
+        searchForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const searchQuery = searchInput.value.trim();
+            
+            if (searchQuery) {
+                // Properly encode the search query
+                const encodedSearchQuery = encodeURIComponent(searchQuery);
+                
+                // Update URL with fully encoded query
+                const newUrl = `/home?search=${encodedSearchQuery}`;
+                
+                // Use replaceState to update URL without creating history entry
+                history.replaceState({ path: newUrl }, '', newUrl);
+                
+                // Perform search with the original query
+                await performSearch(searchQuery);
+            }
+        });
+    }
+
+    // Handle browser back/forward navigation for search
+    window.addEventListener('popstate', async (event) => {
+        const urlParams = new URLSearchParams(window.location.search);
+        const searchQuery = urlParams.get('search');
+
+        if (searchQuery) {
+            // Decode the search query
+            const decodedSearchQuery = decodeURIComponent(searchQuery);
+            searchInput.value = decodedSearchQuery;
+            await performSearch(decodedSearchQuery);
+        } else {
+            // If there is no search query, reload original posts
+            window.location.reload();
+        }
+    });
 });
+
+async function performSearch(query) {
+    try {
+        const posts = await searchPosts(query);
+        renderSearchResults(posts);
+    } catch (error) {
+        console.error('Search error:', error);
+    }
+}
 

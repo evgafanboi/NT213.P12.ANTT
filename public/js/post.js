@@ -20,6 +20,20 @@ async function fetchUserProfile() {
     }
 }
 
+// Function to search posts
+async function searchPosts(query) {
+    try {
+        const response = await fetch(`/api/posts/search?query=${encodeURIComponent(query)}`);
+        if (!response.ok) {
+            throw new Error('Search failed');
+        }
+        return await response.json();
+    } catch (error) {
+        console.error('Search error:', error);
+        return [];
+    }
+}
+
 // Function to check if the user is logged in
 async function checkLoginStatus() {
     const usernameDiv = document.querySelector('.username');
@@ -36,7 +50,6 @@ async function checkLoginStatus() {
         // Register logout handler
         document.querySelector('.logout-btn').addEventListener('click', async () => {
             this.disabled = true;
-            this.textContent = 'Logging out...';
             try {
                 const response = await fetch('/auth/logout', {
                     method: 'POST',
@@ -60,4 +73,26 @@ async function checkLoginStatus() {
 
 window.addEventListener('DOMContentLoaded', async () => {
     await checkLoginStatus();
+
+    // Search functionality
+    const searchForm = document.getElementById('search-form');
+    
+    if (searchForm) {
+        searchForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const searchInput = searchForm.querySelector('input[name="search"]');
+            const searchQuery = searchInput.value.trim();
+            
+            if (searchQuery) {
+                // Get current page URL
+                const currentPath = window.location.pathname;
+                
+                // Construct new URL with search query
+                const newUrl = `/home?search=${encodeURIComponent(searchQuery)}`;
+                
+                // Redirect to the new URL
+                window.location.href = newUrl;
+            }
+        });
+    }
 });
