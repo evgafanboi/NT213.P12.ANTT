@@ -132,7 +132,6 @@ async function initializePostButton() {
     });
 }
 
-// Add this function
 function initializeNavbarToggle() {
     const navbar = document.querySelector('.navbar');
     const toggleButton = document.getElementById('navbar-toggle');
@@ -140,7 +139,7 @@ function initializeNavbarToggle() {
     toggleButton.addEventListener('click', () => {
         navbar.classList.toggle('collapsed');
         
-        // Optional: Save the state to localStorage
+        // Optional: Save the state to localStorage to remain navbar states across different urls
         localStorage.setItem('navbarCollapsed', navbar.classList.contains('collapsed'));
     });
     
@@ -152,10 +151,28 @@ function initializeNavbarToggle() {
     }
 }
 
+function checkPostPreviewOverflow() {
+    const postPreviews = document.querySelectorAll('.post-content-preview');
+    
+    postPreviews.forEach(preview => {
+        // Reset to check actual content height
+        preview.style.maxHeight = 'none';
+        preview.style.overflow = 'visible';
+        
+        // Check if content exceeds 150px height
+        if (preview.scrollHeight > 150) {
+            preview.classList.add('overflowing');
+        } else {
+            preview.classList.remove('overflowing');
+        }
+    });
+}
+
 // Update the DOMContentLoaded event listener
 window.addEventListener('DOMContentLoaded', async () => {
     await checkLoginStatus();
     await initializePostButton();
     initializeNavbarToggle();
+    checkPostPreviewOverflow(); // overflow handler
 });
 

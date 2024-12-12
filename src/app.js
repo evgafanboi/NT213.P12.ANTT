@@ -197,8 +197,15 @@ const httpsServer = https.createServer(options, app);
 
 // Create HTTP server that redirects to HTTPS
 const httpServer = http.createServer((req, res) => {
-    const httpsUrl = `https://${req.headers.host.split(':')[0]}:${HTTPS_PORT}${req.url}`;
-    res.writeHead(301, { "Location": httpsUrl });
+    if (req.headers.host) {
+        const httpsUrl = `https://${req.headers.host.split(':')[0]}:${HTTPS_PORT}${req.url}`;
+        res.writeHead(301, { "Location": httpsUrl });
+    } else {
+        console.error('Host header is undefined');
+        res.writeHead(400, { "Content-Type": "text/plain" });
+        res.end('Bad Request: Host header is missing');
+        return;
+    }
     res.end();
 });
 
