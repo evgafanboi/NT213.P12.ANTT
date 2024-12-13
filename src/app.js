@@ -239,16 +239,14 @@ const httpServer = http.createServer((req, res) => {
     if (req.headers.host) {
         const httpsUrl = `https://${req.headers.host.split(':')[0]}:${HTTPS_PORT}${req.url}`;
         res.writeHead(301, { "Location": httpsUrl });
+        res.end();
     } else {
-        console.error('Host header is undefined');
-        res.status(400).render('error', {
-          title: '400 - Bad host header',
-          message: 'The host header is incorrect.',
-          cssPath: '/css/home.css'
-      });
-        return;
+          res.status(400).render('error', {
+            title: '400 - Bad host header',
+            message: 'The host header is incorrect.',
+            cssPath: '/css/home.css'
+        });
     }
-    res.end();
 });
 
 // Start both servers
