@@ -12,91 +12,29 @@ html, body {
     font-family: Arial, sans-serif;
 }
 
+@media (max-width: 768px) {
+    header {
+        overflow-x: auto;
+
+    }
+    #search-form {
+        display: flex;
+        width: 100px;
+        max-width: 200px;
+    }
+    
+    #search-form input {
+        width: 70px;
+    }
+    .user-name {
+        font-size: 10px;
+    }
+}
+
 .container {
     display: flex;
     height: 100%;
     overflow: hidden;
-}
-
-.navbar {
-    width: 200px;
-    background-color: #333;
-    padding: 20px 0;
-    transition: width 0.5s ease;
-    position: relative;
-}
-
-.navbar.collapsed {
-    width: 60px;
-}
-
-.navbar.collapsed ul li a {
-    padding-left: 20px;
-    font-size: 0;
-}
-
-.navbar.collapsed ul li a::before {
-    font-size: 18px;
-    margin-right: 0;
-}
-
-.navbar ul {
-    list-style-type: none;
-}
-
-.navbar li {
-    margin: 20px 0;
-}
-
-.navbar a {
-    color: #ffdd00;
-    text-decoration: none;
-    padding: 10px;
-    display: block;
-}
-
-.navbar a:hover {
-    background-color: #444;
-}
-
-.navbar ul li a::before {
-    margin-right: 10px;
-    transition: margin 0.3s ease;
-}
-
-.navbar ul li:nth-child(1) a::before {
-    content: "🏠";
-}
-
-.navbar ul li:nth-child(2) a::before {
-    content: "⚙️";
-}
-
-.navbar-toggle {
-    position: fixed;
-    left: 185px;
-    top: 50%;
-    width: 30px;
-    height: 30px;
-    background-color: #333;
-    border: 2px solid #ffdd00;
-    color: #ffdd00;
-    border-radius: 50%;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    z-index: 100;
-    transition: all 0.5s ease;
-}
-
-.navbar-toggle:hover {
-    background-color: #444;
-}
-
-.navbar.collapsed ~ .navbar-toggle {
-    left: 45px;
-    transform: translateY(-50%) rotate(180deg);
 }
 
 .content {
@@ -110,10 +48,20 @@ html, body {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 20px;
+    padding: 10px;
     background-color: #222;
 }
 
+.header a {
+    text-decoration: none;
+    color: #ffdd00;
+    font-size: 20px;
+    font-weight: bold;
+}
+
+.header a:hover {
+    cursor: pointer;
+}
 .search-container {
     flex-grow: 1;
     display: flex;
@@ -166,10 +114,6 @@ html, body {
     outline-offset: 2px;
 }
 
-.logo {
-    font-size: 24px;
-}
-
 .username {
     display: flex;
     align-items: center;
@@ -177,7 +121,7 @@ html, body {
 
 .user-name {
     color: #ffdd00;
-    font-size: 18px;
+    font-size: 16px;
     text-decoration: underline;
     text-decoration-color: #FFDD00;
     border-radius: 4px;
@@ -211,27 +155,9 @@ html, body {
 }
 
 main {
-    padding: 20px;
+    padding: 0px;
     flex: 1;
     overflow-y: auto;
-}
-
-@media (max-width: 768px) {
-    .navbar {
-        width: 100px;
-    }
-
-    .header {
-        padding: 10px;
-    }
-
-    .logo {
-        font-size: 20px;
-    }
-
-    .username {
-        font-size: 16px;
-    }
 }
 
 #create-post-button {

@@ -175,25 +175,6 @@ async function initializePostButton() {
     });
 }
 
-function initializeNavbarToggle() {
-    const navbar = document.querySelector('.navbar');
-    const toggleButton = document.getElementById('navbar-toggle');
-    
-    toggleButton.addEventListener('click', () => {
-        navbar.classList.toggle('collapsed');
-        
-        // Optional: Save the state to localStorage to remain navbar states across different urls
-        localStorage.setItem('navbarCollapsed', navbar.classList.contains('collapsed'));
-    });
-    
-    // Restore navbar state from localStorage on page load
-    const isCollapsed = localStorage.getItem('navbarCollapsed') === 'true';
-    if (isCollapsed) {
-        navbar.classList.add('collapsed');
-        toggleButton.textContent = '≡';
-    }
-}
-
 function checkPostPreviewOverflow() {
     const postPreviews = document.querySelectorAll('.post-content-preview');
     
@@ -217,7 +198,6 @@ function checkPostPreviewOverflow() {
 window.addEventListener('DOMContentLoaded', async () => {
     await checkLoginStatus();
     await initializePostButton();
-    initializeNavbarToggle();
     checkPostPreviewOverflow(); // overflow handler
 
     // Check for initial search query

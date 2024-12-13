@@ -22,6 +22,8 @@ const crypto = require('crypto');
 
 const app = express();
 
+app.use(cookieParser());
+
 const nonceMiddleware = (req, res, next) => {
     // Generate a unique nonce for each request
     const nonce = crypto.randomBytes(16).toString('base64');
@@ -80,8 +82,6 @@ app.use(session({
   name: 'sessionId'
 }));
 
-app.use(cookieParser());
-
 // CSRF Configuration
 const csrfProtection = doubleCsrf({
     getSecret: () => process.env.SESSION_SECRET,
@@ -94,7 +94,7 @@ const csrfProtection = doubleCsrf({
     },
     size: 64,
     ignoredMethods: ["GET"],
-    getTokenFromRequest: (req) =>  req.headers["x-csrf-token"],
+    getTokenFromRequest: (req) => req.headers["x-csrf-token"],
 });
 
 const { generateToken, doubleCsrfProtection } = csrfProtection;

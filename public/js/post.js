@@ -105,22 +105,6 @@ window.addEventListener('DOMContentLoaded', async () => {
         hljs.highlightElement(block);
     });
 
-    // Navbar toggle logic
-    const navbar = document.querySelector('.navbar');
-    const toggleButton = document.getElementById('navbar-toggle');
-    
-    toggleButton.addEventListener('click', () => {
-        navbar.classList.toggle('collapsed');
-        toggleButton.textContent = '≡';
-        localStorage.setItem('navbarCollapsed', navbar.classList.contains('collapsed'));
-    });
-    
-    const isCollapsed = localStorage.getItem('navbarCollapsed') === 'true';
-    if (isCollapsed) {
-        navbar.classList.add('collapsed');
-        toggleButton.textContent = '≡';
-    }
-
     // Comments functionality
     const commentsList = document.querySelector('.comments-list');
     const postId = document.querySelector('.post').dataset.postId;

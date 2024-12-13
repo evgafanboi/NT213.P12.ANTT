@@ -5,7 +5,6 @@
     /*outline: 1px solid red;*/ /*strictly debugging*/
 }
 
-
 .content {
     flex: 1;
     align-items: center;
@@ -17,6 +16,7 @@
 
 .header {
     min-width: 100%;
+    min-height: 50px;
 }
 
 .container {
@@ -24,10 +24,6 @@
     min-height: 100vh;
     width: 100%;
     position: relative;
-}
-
-.navbar.collapsed + .navbar-toggle + .content {
-    margin-left: 0;
 }
 
 html, body {
@@ -38,23 +34,6 @@ html, body {
     font-family: Arial, sans-serif;
 }
 
-@media (max-width: 768px) {
-    .navbar {
-        width: 100px;
-    }
-
-    .header {
-        padding: 10px;
-    }
-
-    .logo {
-        font-size: 20px;
-    }
-
-    .username {
-        font-size: 16px;
-    }
-}
 
 .post-container {
     max-width: 900px;
@@ -273,17 +252,8 @@ html, body {
     text-decoration: underline;
 }
 
-/* Add these header styles from home.css */
-.header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 20px;
-    background-color: #222;
-}
-
 .page-name {
-    font-size: 24px;
+    font-size: 20px;
     color: #ffdd00;
 }
 
@@ -382,4 +352,3 @@ html, body {
     transition: 0.3s ease;
     cursor: pointer;
 }
-

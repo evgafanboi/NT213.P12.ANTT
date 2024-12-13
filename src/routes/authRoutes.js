@@ -24,7 +24,7 @@ const strictRateLimiter = rateLimit({
 
 // Less strict limit for frequent endpoints (/profile)
 const rateLimiter = rateLimit({
-  windowMs: 900000, // 15 minutes
+  windowMs: 600000, // 15 minutes
   max: 30, // limit each IP to 30 requests per windowMs
   message: 'Rate limit hit.',
   standardHeaders: true,
