@@ -81,7 +81,7 @@ router.post('/register/send-code', strictRateLimiter, [
 
     await sendVerificationEmail(email, verificationCode);
 
-    res.status(200).json({ message: 'Verification code sent to your email. Valid for 5 minutes.' });
+    res.status(200).json({ message: 'Verification code sent to your email. Valid for 3 minutes.' });
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: 'Unexpected error' });

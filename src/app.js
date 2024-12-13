@@ -22,13 +22,9 @@ const crypto = require('crypto');
 
 const app = express();
 
-app.use(cookieParser());
-
 const nonceMiddleware = (req, res, next) => {
     // Generate a unique nonce for each request
     const nonce = crypto.randomBytes(16).toString('base64');
-
-    console.log('Generated Nonce:', nonce)
     res.locals.nonce = nonce;
     next();
   };
@@ -84,6 +80,8 @@ app.use(session({
   name: 'sessionId'
 }));
 
+app.use(cookieParser());
+
 // CSRF Configuration
 const csrfProtection = doubleCsrf({
     getSecret: () => process.env.SESSION_SECRET,
@@ -95,7 +93,8 @@ const csrfProtection = doubleCsrf({
         path: '/'
     },
     size: 64,
-    getTokenFromRequest: (req) => req.headers["x-csrf-token"],
+    ignoredMethods: ["GET"],
+    getTokenFromRequest: (req) =>  req.headers["x-csrf-token"],
 });
 
 const { generateToken, doubleCsrfProtection } = csrfProtection;
@@ -106,7 +105,6 @@ app.use((req, res, next) => {
     if (!req.cookies['x-csrf-token']) {
         generateToken(req, res);
     }
-
     const allowedHosts = [
         `localhost:${process.env.HTTPS_PORT}`,
         `localhost:${process.env.HTTP_PORT}`,
@@ -117,12 +115,15 @@ app.use((req, res, next) => {
     const host = req.get('host');
     if (!allowedHosts.includes(host)) {
         console.log(`A request with invalid host header was received: ${host}`);
-        return res.status(403).send('Invalid Host');
+        return res.status(403).render('error', {
+          title: '403 - Host not allowed',
+          message: 'Hostname not allowed.',
+          cssPath: '/css/home.css'
+      });
     }
     next();
 });
 
-// Then add the CSRF protection
 app.use(doubleCsrfProtection);
 
 const csrfLimiter = rateLimit({
@@ -142,17 +143,6 @@ app.get('/csrf-token', csrfLimiter, (req, res) => {
             error: process.env.NODE_ENV === 'development' ? error.message : undefined
         });
     }
-});
-
-// Error handling middleware
-app.use((err, req, res, next) => {
-    console.error(err);
-    if (err.code === 'CSRF_INVALID') {
-        return res.status(403).json({
-            message: 'Invalid CSRF token. Please refresh the page.'
-        });
-    }
-    next(err);
 });
 
 // Route handlers
@@ -225,10 +215,12 @@ app.use((req, res) => {
 
 // Error handler
 app.use((err, req, res, next) => {
-    if (err.code === 'CSRF_INVALID') {
-        return res.status(403).json({
-            message: 'Form has expired. Please refresh the page.'
-        });
+    if (err.code === 'EBADCSRFTOKEN') {
+        return res.status(403).render('error', {
+          title: '403 - CSRF error',
+          message: 'Invalid CSRF token',
+          cssPath: '/css/home.css'
+      });
     }
     next(err);
 });
@@ -249,8 +241,11 @@ const httpServer = http.createServer((req, res) => {
         res.writeHead(301, { "Location": httpsUrl });
     } else {
         console.error('Host header is undefined');
-        res.writeHead(400, { "Content-Type": "text/plain" });
-        res.end('Bad Request: Host header is missing');
+        res.status(400).render('error', {
+          title: '400 - Bad host header',
+          message: 'The host header is incorrect.',
+          cssPath: '/css/home.css'
+      });
         return;
     }
     res.end();
@@ -287,5 +282,9 @@ app.use((err, req, res, next) => {
     stack: err.stack,
     timestamp: new Date().toISOString()
   });
-  res.status(500).send('Unexpected error.');
+  res.status(500).render('error', {
+    title: '500 - Unexpected error',
+    message: 'An error occured. Please revisit the page some other time.',
+    cssPath: '/css/home.css'
+  });
 });

@@ -70,13 +70,6 @@ async function checkLoginStatus() {
         usernameDiv.innerHTML = `<a href="/login" class="login-redirect">Login</a>`;
     }
 }
-
-async function getCsrfToken() {
-    const response = await fetch('/csrf-token');
-    const { token } = await response.json();
-    return token;
-}
-
 // Initialize highlight.js with specific languages
 hljs.configure({
     languages: ['javascript', 'python', 'bash', 'html', 'css', 'sql', 'sh', 'json', 'yaml', 'markdown', 'toml', 'c', 'cpp', 'java', 'php', 'ruby', 'swift', 'kotlin', 'go', 'rust', 'scala', 'haskell', 'erlang', 'elixir', 'dart', 'typescript'],

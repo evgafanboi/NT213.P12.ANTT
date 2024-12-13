@@ -83,7 +83,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const confirmPassword = formData.get('passwordClone');
 
         if (password !== confirmPassword) {
-            alert('Mật khẩu không trùng khớp.');
+            alert('Mismatched passwords.');
             submitButton.disabled = false; // Re-enable the button
             return;
         }
@@ -98,9 +98,12 @@ document.addEventListener('DOMContentLoaded', () => {
         const data = { email, password };
 
         try {
+            const csrfToken = await getCsrfToken();
             const response = await fetch('/auth/register/send-code', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json', 'x-csrf-token': await getCsrfToken() },
+                headers: { 'Content-Type': 'application/json',
+                    'x-csrf-token': csrfToken 
+                },
                 body: JSON.stringify(data)
             });
 
@@ -117,7 +120,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         } catch (error) {
             console.error('Lỗi:', error);
-            alert('Gửi mã xác nhận không thành công!');
+            alert('Failed to send a verfication code!');
         } finally {
             submitButton.disabled = false; // Re-enable the button
         }
@@ -132,9 +135,13 @@ document.addEventListener('DOMContentLoaded', () => {
         const data = { email: userEmail, code };
 
         try {
+            const csrfToken = await getCsrfToken();
             const response = await fetch('/auth/verify', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json', 'x-csrf-token': await getCsrfToken() },
+                headers: { 
+                    'Content-Type': 'application/json',
+                    'x-csrf-token': csrfToken 
+                },
                 body: JSON.stringify(data)
             });
 
@@ -155,13 +162,12 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // Live timer to put extra pressure on the user
     function startExpirationTimer() {
         const timerElement = document.createElement('p');
         timerElement.id = 'expirationTimer';
         verificationForm.appendChild(timerElement);
 
-        let timeLeft = 300; // 5 minutes, - 300 seconds
+        let timeLeft = 180; // 3 minutes, - 300 seconds
         const timerId = setInterval(() => {
             const minutes = Math.floor(timeLeft / 60);
             const seconds = timeLeft % 60;

@@ -156,7 +156,7 @@ function startExpirationTimer() {
     timerElement.id = 'expirationTimer';
     verificationForm.appendChild(timerElement);
 
-    let timeLeft = 5 * 60; // 5 minutes, in seconds
+    let timeLeft = 180; // 3 minutes, in seconds
     const timerId = setInterval(() => {
         const minutes = Math.floor(timeLeft / 60);
         const seconds = timeLeft % 60;
