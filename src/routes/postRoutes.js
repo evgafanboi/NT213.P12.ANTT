@@ -90,7 +90,7 @@ router.get('/count', rateLimiter, async (req, res) => {
 });
 
 
-router.get('/', rateLimiter, async (req, res) => {
+router.get('/', homeRateLimiter, async (req, res) => {
     try {
         // Get posts with user information
         const posts = await db.all(`
@@ -115,7 +115,6 @@ router.get('/', rateLimiter, async (req, res) => {
     }
 });
 
-// New endpoint for searching posts
 router.get('/search', rateLimiter, async (req, res) => {
   const searchQuery = req.query.query || '';
     
@@ -158,7 +157,7 @@ router.get('/search', rateLimiter, async (req, res) => {
 });
 
 // Get a specific post
-router.get('/:id/page', rateLimiter, async (req, res) => {
+router.get('/:id/page', homeRateLimiter, async (req, res) => {
     try {
         const post = await db.get(`
             SELECT 
@@ -312,7 +311,7 @@ router.get('/home', homeRateLimiter, async (req, res) => {
 });
 
 // Get raw post content for editing
-router.get('/:id/raw', rateLimiter, checkAuth, async (req, res) => {
+router.get('/:id/raw', homeRateLimiter, checkAuth, async (req, res) => {
     try {
         const post = await db.get(`
             SELECT 

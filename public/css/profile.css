@@ -1,9 +1,21 @@
+@media (max-width: 768px) {
+    .user-info {
+        width: 300px;
+        overflow: auto;
+    }
+}
 .content-container {
     max-width: 800px;
     margin: 0;
     margin-left: 20px;
     padding: 20px;
 }
+
+.header {
+    min-width: 100%;
+    min-height: 50px;
+}
+
 
 .profile-container {
     margin: 0;
@@ -21,7 +33,8 @@
     border-radius: 8px;
     margin-top: 30px;
     margin-bottom: 30px;
-    min-width: 500px;
+    min-width: 400px;
+    min-height: 200px;
     overflow: auto;
 }
 

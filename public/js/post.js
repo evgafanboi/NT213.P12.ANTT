@@ -70,13 +70,6 @@ async function checkLoginStatus() {
         usernameDiv.innerHTML = `<a href="/login" class="login-redirect">Login</a>`;
     }
 }
-
-async function getCsrfToken() {
-    const response = await fetch('/csrf-token');
-    const { token } = await response.json();
-    return token;
-}
-
 // Initialize highlight.js with specific languages
 hljs.configure({
     languages: ['javascript', 'python', 'bash', 'html', 'css', 'sql', 'sh', 'json', 'yaml', 'markdown', 'toml', 'c', 'cpp', 'java', 'php', 'ruby', 'swift', 'kotlin', 'go', 'rust', 'scala', 'haskell', 'erlang', 'elixir', 'dart', 'typescript'],
@@ -111,22 +104,6 @@ window.addEventListener('DOMContentLoaded', async () => {
     document.querySelectorAll('pre code').forEach((block) => {
         hljs.highlightElement(block);
     });
-
-    // Navbar toggle logic
-    const navbar = document.querySelector('.navbar');
-    const toggleButton = document.getElementById('navbar-toggle');
-    
-    toggleButton.addEventListener('click', () => {
-        navbar.classList.toggle('collapsed');
-        toggleButton.textContent = '≡';
-        localStorage.setItem('navbarCollapsed', navbar.classList.contains('collapsed'));
-    });
-    
-    const isCollapsed = localStorage.getItem('navbarCollapsed') === 'true';
-    if (isCollapsed) {
-        navbar.classList.add('collapsed');
-        toggleButton.textContent = '≡';
-    }
 
     // Comments functionality
     const commentsList = document.querySelector('.comments-list');

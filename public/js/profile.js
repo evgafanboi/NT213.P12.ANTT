@@ -559,4 +559,21 @@ document.addEventListener('DOMContentLoaded', async () => {
             submitBtn.textContent = 'Verify';
         }
     });
+
+    document.querySelector('.logout-btn').addEventListener('click', async () => {
+        try {
+            const response = await fetch('/auth/logout', {
+                method: 'POST',
+                credentials: 'include',
+                headers: {
+                    'x-csrf-token': await getCsrfToken()
+                }
+            });
+            if (response.ok) {
+                window.location.href = '/login';
+            }
+        } catch (error) {
+            console.error('Logout failed:', error);
+        }
+    });
 }); 
