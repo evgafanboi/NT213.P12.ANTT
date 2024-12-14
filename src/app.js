@@ -147,8 +147,8 @@ app.get('/csrf-token', csrfLimiter, (req, res) => {
 
 // Route handlers
 app.use('/auth', authRoutes);
-app.use('/api/posts', postRoutes);
-app.use('/api/comments', commentRoutes);
+app.use('/posts', postRoutes);
+app.use('/comments', commentRoutes);
 
 // Rate limiting
 // very high limit for all public routes
@@ -174,7 +174,7 @@ app.get('/', async (req, res) => {
     const searchQuery = req.query.search || '';
     
     // Redirect to the posts home route with search query
-    res.redirect(`/api/posts/home?search=${encodeURIComponent(searchQuery)}`);
+    res.redirect(`/posts/home?search=${encodeURIComponent(searchQuery)}`);
 });
 
 // Serve login and register pages
@@ -190,12 +190,12 @@ app.get('/home', async (req, res) => {
     const searchQuery = req.query.search || '';
     
     // Redirect to the posts home route with search query
-    res.redirect(`/api/posts/home?search=${encodeURIComponent(searchQuery)}`);
+    res.redirect(`/posts/home?search=${encodeURIComponent(searchQuery)}`);
 });
 
-// Redirect /post/:id to /api/posts/:id/page  (limiter is delegated to postRoutes' limiter)
+// Redirect /post/:id to /posts/:id/page  (limiter is delegated to postRoutes' limiter)
 app.get('/post/:id', (req, res) => {
-    res.redirect(`/api/posts/${req.params.id}/page`);
+    res.redirect(`/posts/${req.params.id}/page`);
 });
 
 // Redirect /profile to /auth/profile/page  (limiter is delegated to authRoutes' limiter)

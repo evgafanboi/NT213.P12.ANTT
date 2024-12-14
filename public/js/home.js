@@ -25,7 +25,7 @@ async function searchPosts(query) {
     try {
         // Encode the query for the URL
         const encodedQuery = encodeURIComponent(query);
-        const response = await fetch(`/api/posts/search?query=${encodedQuery}`);
+        const response = await fetch(`/posts/search?query=${encodedQuery}`);
         
         if (!response.ok) {
             throw new Error('Search failed');
@@ -146,7 +146,7 @@ async function initializePostButton() {
                 return;
             }
 
-            const response = await fetch('/api/posts', {
+            const response = await fetch('/posts', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

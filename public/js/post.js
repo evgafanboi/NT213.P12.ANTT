@@ -23,7 +23,7 @@ async function fetchUserProfile() {
 // Function to search posts
 async function searchPosts(query) {
     try {
-        const response = await fetch(`/api/posts/search?query=${encodeURIComponent(query)}`);
+        const response = await fetch(`/posts/search?query=${encodeURIComponent(query)}`);
         if (!response.ok) {
             throw new Error('Search failed');
         }
@@ -113,7 +113,7 @@ window.addEventListener('DOMContentLoaded', async () => {
 
     async function loadComments() {
         try {
-            const response = await fetch(`/api/comments/post/${postId}?limit=${limit}&offset=${offset}`);
+            const response = await fetch(`/comments/post/${postId}?limit=${limit}&offset=${offset}`);
             const comments = await response.json();
             
             if (comments.length > 0) {
@@ -198,7 +198,7 @@ window.addEventListener('DOMContentLoaded', async () => {
             try {
                 const content = document.getElementById('comment-content').value;
                 
-                const response = await fetch('/api/comments', {
+                const response = await fetch('/comments', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',

@@ -79,7 +79,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                     headers: {
                         'Content-Type': 'application/json',
                         'x-csrf-token': csrfToken
-                    },
+                   },
                     body: JSON.stringify({ username: newUsername }),
                     credentials: 'include'
                 });
@@ -118,7 +118,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             }
 
             // Delete post
-            fetch(`/api/posts/${postId}`, {
+            fetch(`/posts/${postId}`, {
                 method: 'DELETE',
                 headers: {
                     'x-csrf-token': csrfToken
@@ -181,7 +181,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             
             try {
                 // Use the new endpoint for raw content
-                const response = await fetch(`/api/posts/${postId}/raw`, {
+                const response = await fetch(`/posts/${postId}/raw`, {
                     credentials: 'include'
                 });
                 
@@ -211,7 +211,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         
         try {
             const csrfToken = await getCsrfToken();
-            const response = await fetch(`/api/posts/${postId}`, {
+            const response = await fetch(`/posts/${postId}`, {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',
@@ -277,7 +277,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
                 try {
                     const csrfToken = await getCsrfToken();
-                    const response = await fetch(`/api/comments/${commentId}`, {
+                    const response = await fetch(`/comments/${commentId}`, {
                         method: 'DELETE',
                         headers: {
                             'x-csrf-token': csrfToken
@@ -345,7 +345,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             
             try {
                 const csrfToken = await getCsrfToken();
-                const response = await fetch(`/api/comments/${commentId}`, {
+                const response = await fetch(`/comments/${commentId}`, {
                     method: 'PUT',
                     headers: {
                         'Content-Type': 'application/json',
@@ -378,7 +378,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         const commentsContainer = document.querySelector('#comments');
         
         try {
-            const response = await fetch('/api/comments/user', {
+            const response = await fetch('/comments/user', {
                 credentials: 'include'
             });
             const comments = await response.json();
