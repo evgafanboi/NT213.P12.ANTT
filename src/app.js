@@ -62,6 +62,7 @@ app.use(xss());
 app.use(express.json({ limit: '10kb' }));
 app.use(express.urlencoded({ extended: true, limit: '10kb' }));
 app.use(express.static(path.join(__dirname, '../public')));
+app.use(compression());
 // Timeout
 app.use(timeout('5s'));
 
@@ -264,7 +265,8 @@ redirectApp.use((req, res, next) => {
     } else {
         res.status(400).render('error', {
             title: '400 - Bad host header',
-            message: 'The host header is incorrect.'
+            message: 'The host header is incorrect.',
+            cssPath: '/css/home.css'
         });
     }
 });
