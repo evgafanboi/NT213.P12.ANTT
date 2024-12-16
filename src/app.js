@@ -12,6 +12,8 @@ const commentRoutes = require('./routes/commentRoutes');
 const fs = require('fs');
 const http = require('http');
 const rateLimit = require('express-rate-limit');
+const cors = require('cors');
+const compression = require('compression');
 const timeout = require('connect-timeout');
 const ejs = require('ejs');
 const db = require('./db/database');
@@ -32,7 +34,8 @@ const nonceMiddleware = (req, res, next) => {
   };
 
 app.use(nonceMiddleware);
-// Middleware setup
+
+// Helmet setup
 app.use(helmet({
   contentSecurityPolicy: {
     directives: {
@@ -99,7 +102,7 @@ const csrfProtection = doubleCsrf({
 
 const { generateToken, doubleCsrfProtection } = csrfProtection;
 
-// Middleware to ensure CSRF cookie is set
+// First middleware to ensure CSRF cookie is set and to check host header
 app.use((req, res, next) => {
     // Only set token if it doesn't exist
     if (!req.cookies['x-csrf-token']) {
@@ -109,7 +112,8 @@ app.use((req, res, next) => {
         `localhost:${process.env.HTTPS_PORT}`,
         `localhost:${process.env.HTTP_PORT}`,
         '127.0.0.1',
-        process.env.ALLOWED_HOST
+        process.env.ALLOWED_HOST,
+        `www.${process.env.ALLOWED_HOST}`
     ];
 
     const host = req.get('host');
@@ -154,7 +158,7 @@ app.use('/comments', commentRoutes);
 // very high limit for all public routes
 const limiter = rateLimit({
   windowMs: 600000, // 10 minutes
-  max: 50, // limit each IP to 50 requests per windowMs
+  max: 70, // limit each IP to 70 requests per windowMs
   message: 'Rate limit hit.',
   standardHeaders: true,
   legacyHeaders: false,
@@ -227,28 +231,46 @@ app.use((err, req, res, next) => {
 
 // SSL/TLS configuration
 const options = {
-    key: fs.readFileSync('/etc/letsencrypt/live/phucle.cloud/privkey.pem'),
-    cert: fs.readFileSync('/etc/letsencrypt/live/phucle.cloud/fullchain.pem'),
-    ca: fs.readFileSync('/etc/letsencrypt/live/phucle.cloud/chain.pem')
+      key: fs.readFileSync(path.join(__dirname, '..', 'ssl', 'key.pem')),
+      cert: fs.readFileSync(path.join(__dirname, '..', 'ssl', 'cert.pem'))
 };
 
-// Create HTTPS server
+// Create HTTPS server with the main app
 const httpsServer = https.createServer(options, app);
 
-// Create HTTP server that redirects to HTTPS
-const httpServer = http.createServer((req, res) => {
+// Create an Express app for handling HTTP requests instead of raw Node.js to render EJS instead of raw HTML
+const redirectApp = express();
+
+// Security middleware for dummy HTTP server
+redirectApp.use(helmet());  // Helmet applied to dummy HTTP server to hide X-Powered-By header.
+redirectApp.use(limiter);  //Rate limit for dummy HTTP server
+redirectApp.use(cors({
+  origin: `https://${process.env.ALLOWED_HOST}`,
+  methods: ['GET'],
+}));
+redirectApp.use(compression());
+// HSTS to make browsers remember to use HTTPS
+redirectApp.use((req, res, next) => {
+  res.setHeader('Strict-Transport-Security', 'max-age=31536000; includeSubDomains');
+  next();
+});
+redirectApp.set('view engine', 'ejs');
+redirectApp.set('views', path.join(__dirname, 'views'));
+
+redirectApp.use((req, res, next) => {
     if (req.headers.host) {
         const httpsUrl = `https://${req.headers.host.split(':')[0]}:${HTTPS_PORT}${req.url}`;
-        res.writeHead(301, { "Location": httpsUrl });
-        res.end();
+        res.redirect(301, httpsUrl);
     } else {
-          res.status(400).render('error', {
+        res.status(400).render('error', {
             title: '400 - Bad host header',
-            message: 'The host header is incorrect.',
-            cssPath: '/css/home.css'
+            message: 'The host header is incorrect.'
         });
     }
 });
+
+// Create HTTP server that uses the redirectApp
+const httpServer = http.createServer(redirectApp);
 
 // Start both servers
 const HTTPS_PORT = process.env.HTTPS_PORT || 443;
@@ -256,11 +278,6 @@ const HTTP_PORT = process.env.HTTP_PORT || 80;
 
 httpsServer.listen(HTTPS_PORT, () => console.log(`HTTPS Server running on port ${HTTPS_PORT}`));
 httpServer.listen(HTTP_PORT, () => console.log(`HTTP Server running on port ${HTTP_PORT}`));
-
-// Authentication middleware
-const isAuthenticated = (req, res, next) => {
-  req.session.userId ? next() : res.status(401).json({ message: 'Unauthorized' });
-};
 
 const logger = winston.createLogger({
   level: 'info',
