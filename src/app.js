@@ -14,7 +14,7 @@ const http = require('http');
 const rateLimit = require('express-rate-limit');
 const cors = require('cors');
 const compression = require('compression');
-const timeout = require('connect-timeout');
+const timeout = require('connect-timeout');1
 const ejs = require('ejs');
 const db = require('./db/database');
 const { doubleCsrf } = require('csrf-csrf');
@@ -161,7 +161,7 @@ const limiter = rateLimit({
   windowMs: 600000, // 10 minutes
   max: 70, // limit each IP to 70 requests per windowMs
   message: 'Rate limit hit.',
-  standardHeaders: true,
+  standardHeaders: false, // Hide limiter headers
   legacyHeaders: false,
 });
 
