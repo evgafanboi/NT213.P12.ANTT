@@ -392,7 +392,7 @@ router.post('/update-username', strictRateLimiter, checkAuth, async (req, res) =
 });
 
 // Endpoint for password reset
-router.post('/reset-password', strictRateLimiter, checkAuth, [
+router.post('/reset-password', strictRateLimiter, [
   body('newPassword').custom(passwordValidator)
 ], async (req, res) => {
     const errors = validationResult(req);
