@@ -367,20 +367,8 @@ router.put('/profile', strictRateLimiter, checkAuth, [
     }
 });
 
-// helper function, probably not needed but left just in case
-function isAuthenticated(req, res, next) {
-  if (req.session.userId) {
-    next();
-  } else {
-    res.status(401).json({ message: 'Unauthorized' });
-  }
-}
-
 // Update username endpoint
-router.post('/update-username', strictRateLimiter, async (req, res) => {
-    if (!req.session.userId) {
-        return res.status(401).json({ message: 'Unauthorized' });
-    }
+router.post('/update-username', strictRateLimiter, checkAuth, async (req, res) => {
 
     const { username } = req.body;
     
