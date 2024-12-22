@@ -265,6 +265,14 @@ router.delete('/:id', rateLimiter, checkAuth, async (req, res) => {
 // Get posts review and render home page, based on the query on the URL
 router.get('/home', homeRateLimiter, async (req, res) => {
     const searchQuery = req.query.search || '';
+
+    if (searchQuery.length > 100) {  // Length limit on input
+      return res.status(400).render('error', {
+          title: 'Invalid Search',
+          message: 'Search query is too long',
+          cssPath: '/css/home.css'
+      });
+    }
     
     try {
         const query = `
