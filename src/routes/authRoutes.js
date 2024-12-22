@@ -18,7 +18,7 @@ const strictRateLimiter = rateLimit({
   max: 5,
   skipSuccessfulRequests: true,
   message: 'Rate limit hit.',
-  standardHeaders: true,
+  standardHeaders: false,
   legacyHeaders: false,
 });
 
@@ -27,7 +27,7 @@ const rateLimiter = rateLimit({
   windowMs: 600000, // 15 minutes
   max: 30, // limit each IP to 30 requests per windowMs
   message: 'Rate limit hit.',
-  standardHeaders: true,
+  standardHeaders: false,
   legacyHeaders: false,
 });
 
@@ -36,6 +36,14 @@ function isCodeExpired(timestamp) {
   const expirationTime = 180000; // 3 minutes in milliseconds
   return Date.now() - timestamp > expirationTime;
 }
+
+// Middleware to check authentication
+const checkAuth = (req, res, next) => {
+  if (!req.session.userId) {
+    return res.status(401).json({ message: 'Unauthorized' });
+  }
+  next();
+};
 
 // Custom password validator: at least 9 characters, 1 uppercase, 1 lowercase, 1 number, 1 special character
 const passwordValidator = (value) => {
@@ -248,10 +256,7 @@ router.post('/logout', strictRateLimiter, (req, res) => {
   });
 });
 
-router.get('/profile', rateLimiter, async (req, res) => {
-    if (!req.session.userId) {
-        return res.status(401).json({ message: 'Unauthorized' });
-    }
+router.get('/profile', rateLimiter, checkAuth, async (req, res) => {
     try {
         const user = await db.get('SELECT email, username FROM users WHERE email = ?', 
             [req.session.userId]);
@@ -262,12 +267,8 @@ router.get('/profile', rateLimiter, async (req, res) => {
     }
 });
   
-// endpoint dedicated for profile's posts, return both raw and markdown-rendered
-router.get('/profile/page', rateLimiter, async (req, res) => {
-    if (!req.session.userId) {
-        return res.redirect('/login');
-    }
-
+// endpoint dedicated for profile's posts, return markdown-rendered content
+router.get('/profile/page', rateLimiter, checkAuth, async (req, res) => {
     try {
         const [user, posts, comments] = await Promise.all([
             db.get('SELECT * FROM users WHERE email = ?', 
@@ -291,16 +292,20 @@ router.get('/profile/page', rateLimiter, async (req, res) => {
             )
         ]);
 
-        // Render markdown for posts
+        // Render both posts and comments
         const renderedPosts = posts.map(post => ({
             ...post,
             content: renderAndSanitizeMarkdown(post.content)
         }));
+        const renderedComments = comments.map(comment => ({
+            ...comment,
+            content: renderAndSanitizeMarkdown(comment.content)
+        }));
 
-        res.render('profile', { 
+        res.render('profile', {
             user,
             posts: renderedPosts,
-            comments
+            comments: renderedComments
         });
     } catch (error) {
         console.error('Error:', error);
@@ -313,13 +318,10 @@ router.get('/profile/page', rateLimiter, async (req, res) => {
 });
 
 // Update user password
-router.put('/profile', strictRateLimiter, [
+router.put('/profile', strictRateLimiter, checkAuth, [
     body('currentPassword').exists(),
     body('newPassword').custom(passwordValidator),
 ], async (req, res) => {
-    if (!req.session.userId) {
-        return res.status(401).json({ message: 'Unauthorized' });
-    }
 
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
@@ -402,14 +404,9 @@ router.post('/update-username', strictRateLimiter, async (req, res) => {
 });
 
 // Endpoint for password reset
-router.post('/reset-password', strictRateLimiter, [
+router.post('/reset-password', strictRateLimiter, checkAuth, [
   body('newPassword').custom(passwordValidator)
 ], async (req, res) => {
-    // Check if user is allowed to reset password
-    if (!req.session.passwordResetEmail) {
-        return res.status(401).json({ message: 'Unauthorized reset attempt' });
-    }
-
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
         return res.status(400).json({ 

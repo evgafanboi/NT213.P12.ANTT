@@ -17,15 +17,18 @@ const WINDOWMS = 900000; // 15 minutes in milliseconds
 
 const rateLimiter = rateLimit({
   windowMs: WINDOWMS, // 15 minutes
-  max: 30 // limit each IP to 30 requests per windowMs
+  max: 30, // limit each IP to 30 requests per windowMs
+  message: 'Too many requests, please try again later.',
+  standardHeaders: false,
+  legacyHeaders: false,
 });
 
 const strictRateLimiter = rateLimit({
   windowMs: WINDOWMS, // 15 minutes
   max: 10, // limit each IP to 10 requests per windowMs
   message: 'Too many requests, please try again later.',
-  standardHeaders: true, // Return rate limit info in the `RateLimit-*` headers
-  legacyHeaders: false, // Disable the `X-RateLimit-*` headers  
+  standardHeaders: false,
+  legacyHeaders: false,
 });
 
 // Create a new comment
@@ -133,7 +136,7 @@ router.delete('/:id', checkAuth, rateLimiter, async (req, res) => {
   }
 });
 
-// Get comments by user, raw
+// Get comments by user, rendered
 router.get('/user', rateLimiter, checkAuth, async (req, res) => {
     try {
         const comments = await db.all(`
@@ -149,15 +152,47 @@ router.get('/user', rateLimiter, checkAuth, async (req, res) => {
         `, [req.session.userId]);
         
         // Send both raw and rendered content
-        const commentsWithBoth = comments.map(comment => ({
+        const renderedComments = comments.map(comment => ({
             ...comment,
-            raw_content: comment.content, // Keep original markdown
             content: renderAndSanitizeMarkdown(comment.content) // Add rendered version
         }));
         
-        res.json(commentsWithBoth);
+        res.json(renderedComments);
     } catch (error) {
         console.error('Error fetching user comments:', error);
+        res.status(500).json({ message: 'Unexpected error' });
+    }
+});
+
+// Get raw comment content for editing
+router.get('/:id/raw', rateLimiter, checkAuth, async (req, res) => {
+    try {
+        const comment = await db.get(`
+            SELECT 
+                c.id,
+                c.content,
+                c.email
+            FROM comments c
+            WHERE c.id = ?
+        `, [req.params.id]);
+
+        if (!comment) {
+            return res.status(404).json({ message: 'Comment not found' });
+        }
+
+        // Check if the user owns this comment
+        if (comment.email !== req.session.userId) {
+            return res.status(403).json({ message: 'Forbidden' });
+        }
+
+        // Return raw content
+        res.json({
+            id: comment.id,
+            content: comment.content
+        });
+
+    } catch (error) {
+        console.error('Error fetching raw comment:', error);
         res.status(500).json({ message: 'Unexpected error' });
     }
 });

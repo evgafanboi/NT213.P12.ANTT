@@ -200,7 +200,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         });
     });
 
-    // Handle edit form submission
+    // Handle post edit form submission
     editForm.addEventListener('submit', async (e) => {
         e.preventDefault();
         const submitBtn = e.target.querySelector('button[type="submit"]');
@@ -237,6 +237,8 @@ document.addEventListener('DOMContentLoaded', async () => {
                 
                 // Optional: Show success message
                 alert('Post updated successfully');
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'Update';
             } else {
                 alert(data.message || 'Failed to update post');
             }
@@ -312,13 +314,29 @@ document.addEventListener('DOMContentLoaded', async () => {
         const editCommentContent = document.getElementById('edit-comment-content');
 
         document.querySelectorAll('.edit-comment-btn').forEach(editBtn => {
-            editBtn.addEventListener('click', function() {
+            editBtn.addEventListener('click', async function() {
                 const commentId = this.getAttribute('data-comment-id');
-                const rawContent = decodeURIComponent(this.getAttribute('data-raw-content'));
                 
-                editCommentId.value = commentId;
-                editCommentContent.value = rawContent;
-                editCommentModal.style.display = 'block';
+                try {
+                    const response = await fetch(`/comments/${commentId}/raw`, {
+                        credentials: 'include',
+                        headers: {
+                            'Accept': 'application/json'
+                        }
+                    });
+                    
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+                    
+                    const comment = await response.json();
+                    editCommentId.value = commentId;
+                    editCommentContent.value = comment.content;
+                    editCommentModal.style.display = 'block';
+                } catch (error) {
+                    console.error('Error fetching comment:', error);
+                    alert('Failed to load comment content');
+                }
             });
         });
 
@@ -362,6 +380,8 @@ document.addEventListener('DOMContentLoaded', async () => {
                     await loadUserComments();
                     editCommentModal.style.display = 'none';
                     alert('Comment updated successfully');
+                    submitBtn.disabled = false;
+                    submitBtn.textContent = 'Update';
                 } else {
                     const data = await response.json();
                     alert(data.message || 'Failed to update comment');
@@ -373,10 +393,18 @@ document.addEventListener('DOMContentLoaded', async () => {
         });
     }
 
-    // Update loadUserComments to attach event listeners after loading content
+    let initialCommentsLoaded = false;
+
     async function loadUserComments() {
         const commentsContainer = document.querySelector('#comments');
         
+        // If comments are already loaded from server-side render
+        if (!initialCommentsLoaded) {
+            initialCommentsLoaded = true;
+            return;
+        }
+
+        // Otherwise, fetch new comments
         try {
             const response = await fetch('/comments/user', {
                 credentials: 'include'
@@ -419,23 +447,6 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         // After setting innerHTML, attach event listeners
         attachCommentEventListeners();
-    }
-
-    // Load comments when switching to comments tab
-    document.querySelectorAll('.tab-btn').forEach(button => {
-        button.addEventListener('click', () => {
-            // Existing tab switching code...
-            
-            // Load comments when switching to comments tab
-            if (button.getAttribute('data-tab') === 'comments') {
-                loadUserComments();
-            }
-        });
-    });
-
-    // Initial load if comments tab is active
-    if (document.querySelector('.tab-btn[data-tab="comments"]').classList.contains('active')) {
-        loadUserComments();
     }
 
     // Password change form submission
@@ -576,4 +587,6 @@ document.addEventListener('DOMContentLoaded', async () => {
             console.error('Logout failed:', error);
         }
     });
+
+    attachCommentEventListeners();
 }); 

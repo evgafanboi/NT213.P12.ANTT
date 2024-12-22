@@ -14,7 +14,7 @@ const homeRateLimiter = rateLimit({
   windowMs: 600000, // 10 minutes
   max: 50, // limit each IP to 50 requests per windowMs
   message: 'Rate limit hit.',
-  standardHeaders: true,
+  standardHeaders: false,
   legacyHeaders: false,
 });
 
@@ -22,7 +22,7 @@ const rateLimiter = rateLimit({
   windowMs: 900000, // 15 minutes
   max: 30, // limit each IP to 30 requests per windowMs
   message: 'Rate limit hit.',
-  standardHeaders: true,
+  standardHeaders: false,
   legacyHeaders: false,
 });
 
@@ -30,7 +30,7 @@ const strictRateLimiter = rateLimit({
   windowMs: 900000, // 15 minutes
   max: 10, // limit each IP to 10 requests per windowMs
   message: 'Too many requests, please try again later.',
-  standardHeaders: true, // Return rate limit info in the `RateLimit-*` headers
+  standardHeaders: false, // Return rate limit info in the `RateLimit-*` headers
   legacyHeaders: false, // Disable the `X-RateLimit-*` headers
 });
 
@@ -339,7 +339,7 @@ router.get('/:id/raw', homeRateLimiter, checkAuth, async (req, res) => {
         if (post.email !== req.session.userId) {
             return res.status(403).json({ message: 'Forbidden' });
         }
-
+        
         // Return raw content without markdown rendering
         res.json({
             id: post.id,
