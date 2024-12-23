@@ -403,6 +403,10 @@ router.post('/reset-password', strictRateLimiter, [
         });
     }
 
+    if (!req.session.passwordResetEmail){
+      return res.status(401).json({Unauthorized});
+    }
+
     const { newPassword } = req.body;
     const deviceId = req.headers['user-agent'] || 'unknown';
 

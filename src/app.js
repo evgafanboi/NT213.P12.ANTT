@@ -92,10 +92,13 @@ const csrfProtection = doubleCsrf({
     cookieName: "x-csrf-token",
     cookieOptions: {
         httpOnly: true,
-        sameSite: "lax",
-        secure: process.env.NODE_ENV === 'production',
-        path: '/'
+        sameSite: "strict",
+        secure: true,
+        path: '/',
+        maxAge: 86400000,
     },
+    rolling: true,
+    renewAfter: 3600000,
     size: 64,
     ignoredMethods: ["GET"],
     getTokenFromRequest: (req) => req.headers["x-csrf-token"],
