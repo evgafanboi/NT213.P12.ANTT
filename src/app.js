@@ -108,8 +108,8 @@ const { generateToken, doubleCsrfProtection } = csrfProtection;
 
 // First middleware to ensure CSRF cookie is set and to check host header
 app.use((req, res, next) => {
-    // Only set token if it doesn't exist
-    if (!req.cookies['x-csrf-token']) {
+    // Only set token if it doesn't exist and the request is HTTPS
+    if (req.secure && !req.cookies['x-csrf-token']) {
         generateToken(req, res);
     }
     const allowedHosts = [
